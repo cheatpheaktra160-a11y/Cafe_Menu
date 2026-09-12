@@ -9,7 +9,7 @@
   </div>
 
   <div class="cart-page-grid">
-    <div class="card" style="padding:28px;">
+    <div class="card">
       <form method="post" action="{{ url_for('checkout') }}" style="display:grid; gap:18px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         
@@ -42,7 +42,7 @@
       </form>
     </div>
 
-    <aside class="card" style="display:grid; gap:16px; padding:24px;">
+    <aside class="card" style="display:grid; gap:16px;">
       <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-shopping-bag" style="color:var(--primary);"></i> Order Summary</h3>
       
       <div style="display:grid; gap:12px; border-bottom:1px solid var(--border); padding-bottom:14px;">

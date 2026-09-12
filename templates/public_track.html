@@ -11,7 +11,7 @@
     </a>
   </div>
 
-  <form method="post" action="{{ url_for('track_order') }}" class="card" style="display:flex; gap:12px; padding:18px; margin-bottom:24px;">
+  <form method="post" action="{{ url_for('track_order') }}" class="card" style="display:flex; gap:12px; margin-bottom:24px;">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <div class="search-input-wrap" style="flex:1;">
       <i class="fas fa-search"></i>
@@ -21,7 +21,7 @@
   </form>
 
   {% if order %}
-  <div class="card" style="display:grid; gap:24px; padding:28px; position:relative; overflow:hidden;">
+  <div class="card" style="display:grid; gap:24px; position:relative; overflow:hidden;">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--border); padding-bottom:18px;">
       <div>
         <div style="display:flex; align-items:center; gap:8px;">

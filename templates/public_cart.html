@@ -13,7 +13,7 @@
 
   {% if cart_items %}
   <div class="cart-page-grid">
-    <div class="card customer-cart-items-card" style="display:grid; gap:16px; padding:24px;">
+    <div class="card customer-cart-items-card" style="display:grid; gap:16px;">
       {% for item in cart_items %}
       <div class="customer-cart-item">
         <div class="customer-cart-item-info">
@@ -46,7 +46,7 @@
       {% endfor %}
     </div>
 
-    <aside class="card" style="display:grid; gap:16px; padding:24px;">
+    <aside class="card" style="display:grid; gap:16px;">
       <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-receipt" style="color:var(--primary);"></i> Order Summary</h3>
       
       <div style="display:flex; justify-content:space-between; color:var(--muted);">
