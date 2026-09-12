@@ -5,7 +5,7 @@ import urllib.request
 from playwright.sync_api import sync_playwright
 
 BASE_URL = "http://127.0.0.1:5000"
-ARTIFACT_DIR = r"C:\Users\Ackerman\.gemini\antigravity-ide\brain\01029117-26a3-4860-abea-e0e65ba5e0de"
+ARTIFACT_DIR = r"C:\Users\Ackerman\.gemini\antigravity-ide\brain\708ae83f-a850-46e9-94ec-20502f5764c1"
 os.makedirs(ARTIFACT_DIR, exist_ok=True)
 
 import subprocess

@@ -16,11 +16,11 @@
       <div class="table-header">
         <div>
           <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-cash-register" style="color:var(--primary);"></i> Point of Sale</h3>
-          <span class="muted" style="font-size:0.85rem;">{{ products | length }} items in catalog &bull; Press <kbd class="kbd-key">F2</kbd> to search</span>
+          <span class="muted" style="font-size:0.85rem;">{{ products | length }} items in catalog <span class="hide-mobile">&bull; Press <kbd class="kbd-key">F2</kbd> to search</span></span>
         </div>
         <div class="search-input-wrap" style="max-width: 260px;">
           <i class="fas fa-search"></i>
-          <input type="text" id="pos-search" placeholder="Search menu items (F2)..." />
+          <input type="text" id="pos-search" placeholder="Search menu items..." />
         </div>
       </div>
 
@@ -81,7 +81,7 @@
           <i class="fas fa-shopping-cart" style="color:var(--primary); font-size:1.2rem;"></i>
           <h3 style="margin:0; font-size:1.2rem;">Current Order</h3>
         </div>
-        <button type="button" id="clear-cart" class="button danger small" title="Clear order (F4)"><i class="fas fa-trash-alt"></i> Clear (F4)</button>
+        <button type="button" id="clear-cart" class="button danger small" title="Clear order"><i class="fas fa-trash-alt"></i> <span class="hide-mobile">Clear (F4)</span><span class="show-mobile-inline">Clear</span></button>
       </div>
 
       <!-- Order Type Selector -->

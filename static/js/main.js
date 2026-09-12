@@ -736,7 +736,8 @@ function setupMobileNav() {
   const publicToggle = document.getElementById('public-menu-toggle');
   const publicLinks = document.getElementById('public-links');
   if (publicToggle && publicLinks) {
-    publicToggle.addEventListener('click', () => {
+    publicToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
       publicLinks.classList.toggle('open');
     });
     document.addEventListener('click', (e) => {
@@ -748,8 +749,10 @@ function setupMobileNav() {
 
   const sidebarToggle = document.getElementById('sidebar-toggle');
   const sidebar = document.getElementById('sidebar');
-  if (sidebarToggle && sidebar) {
-    // Create backdrop overlay for mobile sidebar
+  const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+
+  if (sidebar) {
+    // Create backdrop overlay for mobile sidebar if not present
     let sidebarBackdrop = document.querySelector('.sidebar-backdrop');
     if (!sidebarBackdrop) {
       sidebarBackdrop = document.createElement('div');
@@ -760,20 +763,32 @@ function setupMobileNav() {
     function openSidebar() {
       sidebar.classList.add('open');
       sidebarBackdrop.classList.add('active');
+      document.body.style.overflow = 'hidden';
     }
 
     function closeSidebar() {
       sidebar.classList.remove('open');
       sidebarBackdrop.classList.remove('active');
+      document.body.style.overflow = '';
     }
 
-    sidebarToggle.addEventListener('click', () => {
-      if (sidebar.classList.contains('open')) {
+    if (sidebarToggle) {
+      sidebarToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (sidebar.classList.contains('open')) {
+          closeSidebar();
+        } else {
+          openSidebar();
+        }
+      });
+    }
+
+    if (sidebarCloseBtn) {
+      sidebarCloseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         closeSidebar();
-      } else {
-        openSidebar();
-      }
-    });
+      });
+    }
 
     sidebarBackdrop.addEventListener('click', closeSidebar);
 
@@ -781,9 +796,15 @@ function setupMobileNav() {
       if (
         sidebar.classList.contains('open') &&
         !sidebar.contains(e.target) &&
-        !sidebarToggle.contains(e.target) &&
+        (!sidebarToggle || !sidebarToggle.contains(e.target)) &&
         !sidebarBackdrop.contains(e.target)
       ) {
+        closeSidebar();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar.classList.contains('open')) {
         closeSidebar();
       }
     });
@@ -899,11 +920,11 @@ function initCounterAnimation() {
 
 /* ---------------------------------------------------- Cart Badge Bounce */
 function triggerCartBadgeBounce() {
-  const badges = document.querySelectorAll('.cart-badge');
+  const badges = document.querySelectorAll('.cart-badge, .mobile-cart-count');
   badges.forEach((b) => {
-    b.classList.remove('bounce');
+    b.classList.remove('bounce', 'cart-badge-bounce');
     void b.offsetWidth;
-    b.classList.add('bounce');
+    b.classList.add('cart-badge-bounce');
   });
 }
 

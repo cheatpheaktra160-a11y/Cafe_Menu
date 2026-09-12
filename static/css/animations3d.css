@@ -1,27 +1,27 @@
 /* ============================================================
-   PHEAKTRA COFFEE — Silky Smooth 2D Animations & Interactions
-   Refined Apple-Grade Easing Curves for Buttery Soft UX
+   PHEAKTRA COFFEE — Silky Smooth GPU Animations & Interactions
+   Apple-Grade Easing Curves for 60fps Zero-Lag Mobile Experience
    ============================================================ */
 
 :root {
   --ease-smooth:   cubic-bezier(0.22, 1, 0.36, 1);
   --ease-soft:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-gentle:   cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring:   cubic-bezier(0.16, 1, 0.3, 1);
   --ease-float:    cubic-bezier(0.44, 0, 0.56, 1);
-  --dur-fast:      0.22s;
-  --dur-normal:    0.35s;
-  --dur-slow:      0.65s;
+  --dur-fast:      0.16s;
+  --dur-normal:    0.3s;
+  --dur-slow:      0.55s;
 }
 
 /* ── 1. Page & Section Fluid Entrances ─────────────────────── */
 @keyframes smoothFadeSlideUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translate3d(0, 8px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -33,18 +33,29 @@
 @keyframes smoothScaleIn {
   from {
     opacity: 0;
-    transform: scale(0.98);
+    transform: scale3d(0.96, 0.96, 1);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: scale3d(1, 1, 1);
   }
+}
+
+@keyframes badgeBounce {
+  0%   { transform: scale3d(1, 1, 1); }
+  40%  { transform: scale3d(1.35, 1.35, 1); }
+  70%  { transform: scale3d(0.9, 0.9, 1); }
+  100% { transform: scale3d(1, 1, 1); }
+}
+
+.cart-badge-bounce {
+  animation: badgeBounce 0.38s var(--ease-spring) both;
 }
 
 .main-content,
 .public-landing,
 .hero-panel {
-  animation: smoothFadeSlideUp 0.6s var(--ease-smooth) both;
+  animation: smoothFadeSlideUp 0.45s var(--ease-smooth) both;
 }
 
 /* ── 2. Brand Mark Subtle Polish ───────────────────────────── */
@@ -52,7 +63,7 @@
   transition: transform var(--dur-normal) var(--ease-smooth), box-shadow var(--dur-normal) var(--ease-smooth);
 }
 .brand-mark:hover {
-  transform: translateY(-2px) scale(1.03);
+  transform: translate3d(0, -2px, 0) scale(1.03);
   box-shadow: 0 8px 24px rgba(194, 139, 94, 0.3);
 }
 
@@ -63,7 +74,7 @@
 .feature-card,
 .stat-card,
 .table-card {
-  animation: smoothFadeSlideUp 0.55s var(--ease-smooth) both;
+  animation: smoothFadeSlideUp 0.4s var(--ease-smooth) both;
   transition:
     transform var(--dur-normal) var(--ease-smooth),
     box-shadow var(--dur-normal) var(--ease-smooth),
@@ -71,200 +82,117 @@
   will-change: transform, box-shadow;
 }
 
-.menu-card:nth-child(1), .product-card:nth-child(1) { animation-delay: 0.04s; }
-.menu-card:nth-child(2), .product-card:nth-child(2) { animation-delay: 0.08s; }
-.menu-card:nth-child(3), .product-card:nth-child(3) { animation-delay: 0.12s; }
-.menu-card:nth-child(4), .product-card:nth-child(4) { animation-delay: 0.16s; }
-.menu-card:nth-child(5), .product-card:nth-child(5) { animation-delay: 0.20s; }
-.menu-card:nth-child(6), .product-card:nth-child(6) { animation-delay: 0.24s; }
-.menu-card:nth-child(7), .product-card:nth-child(7) { animation-delay: 0.28s; }
-.menu-card:nth-child(8), .product-card:nth-child(8) { animation-delay: 0.32s; }
+.menu-card:nth-child(1), .product-card:nth-child(1) { animation-delay: 0.02s; }
+.menu-card:nth-child(2), .product-card:nth-child(2) { animation-delay: 0.04s; }
+.menu-card:nth-child(3), .product-card:nth-child(3) { animation-delay: 0.06s; }
+.menu-card:nth-child(4), .product-card:nth-child(4) { animation-delay: 0.08s; }
+.menu-card:nth-child(5), .product-card:nth-child(5) { animation-delay: 0.10s; }
+.menu-card:nth-child(6), .product-card:nth-child(6) { animation-delay: 0.12s; }
 
 /* Buttery Soft Card Hover Lift */
-.menu-card:hover,
-.product-card:hover,
-.feature-card:hover,
-.stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(212, 163, 122, 0.22);
-  border-color: rgba(212, 163, 122, 0.3);
+@media (hover: hover) and (pointer: fine) {
+  .menu-card:hover,
+  .product-card:hover,
+  .feature-card:hover,
+  .stat-card:hover {
+    transform: translate3d(0, -3px, 0);
+    box-shadow: 0 18px 40px -10px rgba(0, 0, 0, 0.6), 0 0 1px 1px rgba(212, 163, 122, 0.22);
+    border-color: rgba(212, 163, 122, 0.3);
+  }
+
+  .menu-card:hover .menu-card-img,
+  .product-card:hover .product-card-img {
+    transform: scale3d(1.03, 1.03, 1);
+  }
 }
 
-/* ── 4. Luxurious Image Zoom ───────────────────────────────── */
-.menu-card-img,
-.product-card-img,
-.hero-img-wrap,
-.hero-img-backdrop {
-  transition: transform var(--dur-slow) var(--ease-smooth);
-  will-change: transform;
-}
-
-.menu-card:hover .menu-card-img,
-.product-card:hover .product-card-img {
-  transform: scale(1.03);
-}
-
-/* ── 5. Hero Visual & Soft Floating Badges ─────────────────── */
-.hero-visual-clean {
-  position: relative;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(212, 163, 122, 0.18);
-  border: 1px solid rgba(212, 163, 122, 0.18);
-  background: #18100b;
-}
-
-.hero-visual-clean img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform var(--dur-slow) var(--ease-smooth);
-}
-
-.hero-visual-clean:hover img {
-  transform: scale(1.02);
-}
-
-/* Silky Sine Floating Badges */
-@keyframes silkyFloat1 {
-  0%   { transform: translateY(0px); }
-  50%  { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
-}
-
-@keyframes silkyFloat2 {
-  0%   { transform: translateY(0px); }
-  50%  { transform: translateY(6px); }
-  100% { transform: translateY(0px); }
-}
-
-.hero-floating-card {
-  position: absolute;
-  background: rgba(24, 16, 11, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 163, 122, 0.22);
-  border-radius: var(--radius-md);
-  padding: 12px 18px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  z-index: 4;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+/* ── 4. Buttons & 0-Delay Mobile Response ──────────────────── */
+.button,
+.pos-mobile-tab,
+.order-type-btn,
+.discount-preset-btn,
+.cash-preset-btn {
   transition:
-    transform var(--dur-normal) var(--ease-smooth),
-    border-color var(--dur-normal) ease,
-    box-shadow var(--dur-normal) var(--ease-smooth);
-}
-
-.hero-floating-card:hover {
-  border-color: rgba(212, 163, 122, 0.45);
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.65), 0 0 20px rgba(194, 139, 94, 0.2);
-}
-
-.hero-floating-card.top-left {
-  top: 8%;
-  left: 6%;
-  animation: silkyFloat1 8.5s var(--ease-float) infinite;
-}
-
-.hero-floating-card.bottom-right {
-  bottom: 8%;
-  right: 6%;
-  animation: silkyFloat2 9.5s var(--ease-float) infinite;
-}
-
-.floating-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.05rem;
-  background: rgba(194, 139, 94, 0.16);
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-/* ── 6. Buttons & Spring Response ──────────────────────────── */
-.button {
-  transition:
-    transform var(--dur-fast) var(--ease-smooth),
-    box-shadow var(--dur-fast) var(--ease-smooth),
+    transform var(--dur-fast) var(--ease-spring),
+    box-shadow var(--dur-fast) var(--ease-spring),
     background var(--dur-fast) ease,
     border-color var(--dur-fast) ease;
   position: relative;
   overflow: hidden;
+  will-change: transform;
 }
 
-.button:not([disabled]):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(194, 139, 94, 0.32);
+@media (hover: hover) and (pointer: fine) {
+  .button:not([disabled]):hover {
+    transform: translate3d(0, -1.5px, 0);
+    box-shadow: 0 8px 20px rgba(194, 139, 94, 0.32);
+  }
 }
 
-.button:not([disabled]):active {
-  transform: translateY(0.5px) scale(0.985);
-  box-shadow: 0 3px 8px rgba(194, 139, 94, 0.18);
-  transition-duration: 0.1s;
+/* Instant active spring response without delay */
+.button:not([disabled]):active,
+.pos-mobile-tab:active,
+.order-type-btn:active,
+.discount-preset-btn:active,
+.cash-preset-btn:active,
+.category-button:active {
+  transform: translate3d(0, 1px, 0) scale(0.96) !important;
+  transition-duration: 0.06s !important;
 }
 
-.button.secondary:not([disabled]):hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
-  border-color: rgba(212, 163, 122, 0.35);
-}
-
-/* ── 7. Category Filter Buttons ────────────────────────────── */
+/* ── 5. Category Filter Buttons ────────────────────────────── */
 .category-button,
 .filter-chip {
   transition:
-    transform var(--dur-fast) var(--ease-smooth),
+    transform var(--dur-fast) var(--ease-spring),
     background var(--dur-fast) ease,
     border-color var(--dur-fast) ease,
-    box-shadow var(--dur-fast) var(--ease-smooth);
-}
-.category-button:hover,
-.filter-chip:hover {
-  transform: translateY(-1.5px);
-  border-color: var(--primary);
-  box-shadow: 0 4px 12px rgba(194, 139, 94, 0.15);
+    box-shadow var(--dur-fast) var(--ease-spring);
+  will-change: transform;
 }
 
-/* ── 8. Navigation & Sidebar Links ─────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  .category-button:hover,
+  .filter-chip:hover {
+    transform: translate3d(0, -1px, 0);
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(194, 139, 94, 0.15);
+  }
+}
+
+/* ── 6. Navigation & Sidebar Links ─────────────────────────── */
 .menu-item,
 .public-links a {
   transition:
     color var(--dur-fast) ease,
     background var(--dur-fast) ease,
-    transform var(--dur-fast) var(--ease-smooth);
+    transform var(--dur-fast) var(--ease-spring);
 }
 
 .menu-item:hover {
-  transform: translateX(3px);
+  transform: translate3d(3px, 0, 0);
 }
 
 .public-links a:hover {
-  transform: translateY(-1px);
+  transform: translate3d(0, -1px, 0);
 }
 
-/* ── 9. Modals & Dialogs ───────────────────────────────────── */
-.modal-overlay {
-  animation: smoothFadeIn 0.3s ease both;
+/* ── 7. Modals & Dialogs ───────────────────────────────────── */
+.modal-overlay,
+.modal-backdrop {
+  animation: smoothFadeIn 0.22s ease both;
 }
 
-.modal-dialog,
-.custom-modal-content {
-  animation: smoothScaleIn 0.35s var(--ease-smooth) both;
+.modal {
+  animation: smoothScaleIn 0.28s var(--ease-spring) both;
 }
 
-/* ── 10. Toast Notification ────────────────────────────────── */
+/* ── 8. Toast Notification ────────────────────────────────── */
 .toast {
-  animation: smoothFadeSlideUp 0.38s var(--ease-smooth) both;
+  animation: smoothFadeSlideUp 0.3s var(--ease-spring) both;
 }
 
-/* ── 11. Form Inputs Smooth Focus ──────────────────────────── */
+/* ── 9. Form Inputs Smooth Focus ──────────────────────────── */
 input,
 select,
 textarea {
@@ -274,7 +202,7 @@ textarea {
     background var(--dur-fast) ease;
 }
 
-/* ── 12. Reduced Motion Accessibility ──────────────────────── */
+/* ── 10. Reduced Motion Accessibility ──────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

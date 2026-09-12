@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#140d09" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="description" content="{{ setting.store_name if setting else 'PHEAKTRA COFFEE' }} — Artisan coffee, handcrafted drinks, and freshly baked pastries." />
     <title>{{ title }} | {{ setting.store_name if setting else 'PHEAKTRA COFFEE' }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,52 +27,55 @@
       <aside class="sidebar no-print" id="sidebar">
         <div class="brand">
           <div class="brand-mark"><i class="fas fa-mug-hot" aria-hidden="true"></i></div>
-          <div>
+          <div class="brand-text">
             <h1>{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h1>
-            <p><span class="live-dot" title="Online"></span> {{ setting.store_name if setting else 'Cafe Management' }}</p>
+            <p><span class="live-dot" title="Online"></span> {% if setting and setting.store_name != setting.brand %}{{ setting.store_name }}{% else %}Cafe Management{% endif %}</p>
           </div>
+          <button type="button" class="sidebar-close-btn" id="sidebar-close-btn" aria-label="Close Sidebar">
+            <i class="fas fa-xmark"></i>
+          </button>
         </div>
         <nav class="menu">
           <a href="{{ url_for('dashboard') }}" class="menu-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
-            <i class="fas fa-chart-pie"></i> Dashboard
+            <i class="fas fa-chart-pie"></i> <span>Dashboard</span>
           </a>
           <a href="{{ url_for('pos') }}" class="menu-item {% if request.endpoint == 'pos' %}active{% endif %}">
-            <i class="fas fa-cash-register"></i> Point of Sale
+            <i class="fas fa-cash-register"></i> <span>Point of Sale</span>
           </a>
           <a href="{{ url_for('kds') }}" class="menu-item {% if request.endpoint == 'kds' %}active{% endif %}">
-            <i class="fas fa-utensils"></i> Kitchen (KDS)
+            <i class="fas fa-utensils"></i> <span>Kitchen (KDS)</span>
             {% if active_kitchen_count > 0 %}
             <span class="badge badge-low kds-badge-count" style="margin-left:auto; font-size:0.75rem; padding:2px 8px;">{{ active_kitchen_count }}</span>
             {% endif %}
           </a>
           <a href="{{ url_for('orders') }}" class="menu-item {% if request.endpoint == 'orders' %}active{% endif %}">
-            <i class="fas fa-receipt"></i> Orders &amp; History
+            <i class="fas fa-receipt"></i> <span>Orders &amp; History</span>
           </a>
           <a href="{{ url_for('customers') }}" class="menu-item {% if request.endpoint == 'customers' %}active{% endif %}">
-            <i class="fas fa-users"></i> Customers &amp; Loyalty
+            <i class="fas fa-users"></i> <span>Customers &amp; Loyalty</span>
           </a>
           {% if is_admin %}
           <a href="{{ url_for('products') }}" class="menu-item {% if request.endpoint == 'products' %}active{% endif %}">
-            <i class="fas fa-mug-hot"></i> Products
+            <i class="fas fa-mug-hot"></i> <span>Products</span>
           </a>
           <a href="{{ url_for('inventory') }}" class="menu-item {% if request.endpoint == 'inventory' %}active{% endif %}">
-            <i class="fas fa-boxes-stacked"></i> Inventory
+            <i class="fas fa-boxes-stacked"></i> <span>Inventory</span>
           </a>
           <a href="{{ url_for('expenses') }}" class="menu-item {% if request.endpoint == 'expenses' %}active{% endif %}">
-            <i class="fas fa-wallet"></i> Expenses
+            <i class="fas fa-wallet"></i> <span>Expenses</span>
           </a>
           <a href="{{ url_for('reports') }}" class="menu-item {% if request.endpoint in ('reports', 'z_report') %}active{% endif %}">
-            <i class="fas fa-chart-line"></i> Reports &amp; Analytics
+            <i class="fas fa-chart-line"></i> <span>Reports &amp; Analytics</span>
           </a>
           <a href="{{ url_for('tables') }}" class="menu-item {% if request.endpoint in ('tables', 'print_all_tables', 'print_single_table') %}active{% endif %}">
-            <i class="fas fa-table-cells"></i> Tables &amp; QR
+            <i class="fas fa-table-cells"></i> <span>Tables &amp; QR</span>
           </a>
           <a href="{{ url_for('users') }}" class="menu-item {% if request.endpoint == 'users' %}active{% endif %}">
-            <i class="fas fa-user-gear"></i> Staff
+            <i class="fas fa-user-gear"></i> <span>Staff</span>
           </a>
           {% endif %}
           <a href="{{ url_for('settings') }}" class="menu-item {% if request.endpoint == 'settings' %}active{% endif %}">
-            <i class="fas fa-sliders"></i> Store Settings
+            <i class="fas fa-sliders"></i> <span>Store Settings</span>
           </a>
         </nav>
         <div class="sidebar-footer">
@@ -86,7 +92,7 @@
         <div class="brand compact">
           <a href="{{ url_for('home') }}" class="brand-link">
             <div class="brand-mark"><i class="fas fa-mug-hot" aria-hidden="true"></i></div>
-            <div>
+            <div class="brand-text">
               <h1>{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h1>
             </div>
           </a>
@@ -96,22 +102,22 @@
         </button>
         <div class="public-links" id="public-links">
           <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">
-            <i class="fas fa-house"></i> Home
+            <i class="fas fa-house"></i> <span>Home</span>
           </a>
           <a href="{{ url_for('menu') }}" class="{% if request.endpoint == 'menu' %}active{% endif %}">
-            <i class="fas fa-mug-hot"></i> Menu
+            <i class="fas fa-mug-hot"></i> <span>Menu</span>
           </a>
           <a href="{{ url_for('track_order') }}" class="{% if request.endpoint == 'track_order' %}active{% endif %}">
-            <i class="fas fa-location-crosshairs"></i> Track Order
+            <i class="fas fa-location-crosshairs"></i> <span>Track Order</span>
           </a>
           <a href="{{ url_for('cart') }}" class="cart-nav-link {% if request.endpoint == 'cart' %}active{% endif %}">
-            <i class="fas fa-shopping-bag"></i> Cart
+            <i class="fas fa-shopping-bag"></i> <span>Cart</span>
             {% if cart_count > 0 %}
             <span class="cart-badge">{{ cart_count }}</span>
             {% endif %}
           </a>
           <a href="{{ url_for('login') }}" class="staff-login-link {% if request.endpoint == 'login' %}active{% endif %}">
-            <i class="fas fa-lock"></i> Staff Login
+            <i class="fas fa-lock"></i> <span>Staff Login</span>
           </a>
         </div>
       </nav>
@@ -124,7 +130,7 @@
             <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle Sidebar">
               <i class="fas fa-bars"></i>
             </button>
-            <div>
+            <div class="topbar-title-wrap">
               <h2>{{ title }}</h2>
               {% if setting %}
               <p class="subtitle">{{ setting.store_name }} &bull; {{ setting.currency }}</p>
@@ -133,17 +139,17 @@
           </div>
           <div class="topbar-actions">
             {% if is_admin %}
-            <a href="{{ url_for('z_report') }}" class="button secondary small" title="Daily Register Z-Report">
-              <i class="fas fa-file-invoice-dollar"></i> Z-Report
+            <a href="{{ url_for('z_report') }}" class="button secondary small topbar-action-btn" title="Daily Register Z-Report">
+              <i class="fas fa-file-invoice-dollar"></i> <span class="action-text">Z-Report</span>
             </a>
             {% endif %}
-            <a href="{{ url_for('kds') }}" class="button secondary small" title="Kitchen Display System">
-              <i class="fas fa-utensils"></i> KDS Screen
+            <a href="{{ url_for('kds') }}" class="button secondary small topbar-action-btn" title="Kitchen Display System">
+              <i class="fas fa-utensils"></i> <span class="action-text">KDS</span>
             </a>
-            <a href="{{ url_for('home') }}" class="button secondary small" target="_blank" title="View Customer Storefront">
-              <i class="fas fa-store"></i> Customer View
+            <a href="{{ url_for('home') }}" class="button secondary small topbar-action-btn" target="_blank" title="View Customer Storefront">
+              <i class="fas fa-store"></i> <span class="action-text">Customer</span>
             </a>
-            <span class="user-chip"><i class="fas fa-user-shield"></i> {{ current_user.role }}</span>
+            <span class="user-chip"><i class="fas fa-user-shield"></i> <span class="user-role-text">{{ current_user.role }}</span></span>
           </div>
         </header>
         {% endif %}
