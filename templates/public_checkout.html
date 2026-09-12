@@ -12,20 +12,20 @@
     <div class="card">
       <form method="post" action="{{ url_for('checkout') }}" style="display:grid; gap:18px;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        
+
         <label>Your Full Name *
-          <input type="text" name="customer_name" placeholder="e.g. Jane Doe" required />
+          <input type="text" name="customer_name" placeholder="" required />
         </label>
 
         <label>Phone Number (Optional for order SMS updates)
-          <input type="tel" name="phone" placeholder="+1 (555) 000-1122" />
+          <input type="tel" name="phone" placeholder="" />
         </label>
 
         <label>Seating / Delivery Option
           <select name="table_id">
             <option value="">Takeaway / Pickup</option>
             {% for table in tables %}
-            <option value="{{ table.id }}" {% if table.id == session_table_id %}selected{% endif %}>
+            <option value="{{ table.id }}" {% if table.id==session_table_id %}selected{% endif %}>
               Dine-in (Table {{ table.table_number }})
             </option>
             {% endfor %}
@@ -43,8 +43,9 @@
     </div>
 
     <aside class="card" style="display:grid; gap:16px;">
-      <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-shopping-bag" style="color:var(--primary);"></i> Order Summary</h3>
-      
+      <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-shopping-bag" style="color:var(--primary);"></i> Order
+        Summary</h3>
+
       <div style="display:grid; gap:12px; border-bottom:1px solid var(--border); padding-bottom:14px;">
         {% for item in cart_items %}
         <div style="display:flex; justify-content:space-between; align-items:start;">
