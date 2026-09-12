@@ -150,6 +150,9 @@
               <i class="fas fa-store"></i> <span class="action-text">Customer</span>
             </a>
             <span class="user-chip"><i class="fas fa-user-shield"></i> <span class="user-role-text">{{ current_user.role }}</span></span>
+            <a href="{{ url_for('logout') }}" class="button secondary small topbar-action-btn" title="Sign out / Logout" style="border-color:rgba(239, 68, 68, 0.35); color:#fca5a5;">
+              <i class="fas fa-right-from-bracket" style="color:#ef4444;"></i> <span class="action-text">Logout</span>
+            </a>
           </div>
         </header>
         {% endif %}

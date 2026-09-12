@@ -251,19 +251,46 @@ button {
 .sidebar {
   background: linear-gradient(180deg, #121822 0%, #0d121a 100%);
   color: var(--text);
-  padding: 28px 20px;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 20px;
   border-right: 1px solid var(--border);
   z-index: 50;
   transition: transform var(--transition-smooth);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.25) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.25);
+  border-radius: 999px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.5);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 14px;
+  flex-shrink: 0;
 }
 
 .brand-link {
@@ -462,11 +489,12 @@ button {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   padding: 16px;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .user-info {
@@ -2733,14 +2761,23 @@ table tbody tr:hover {
     top: 0;
     left: 0;
     bottom: 0;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
     width: 290px;
     max-width: 85vw;
     transform: translate3d(-100%, 0, 0);
     box-shadow: 10px 0 35px rgba(0, 0, 0, 0.7);
     z-index: 2000;
-    padding-top: max(24px, env(safe-area-inset-top, 24px));
+    padding-top: max(20px, env(safe-area-inset-top, 20px));
     padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
-    padding-left: max(20px, env(safe-area-inset-left, 20px));
+    padding-left: max(18px, env(safe-area-inset-left, 18px));
+    padding-right: max(18px, env(safe-area-inset-right, 18px));
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
   }
 
   .sidebar.open {
