@@ -51,6 +51,12 @@ CURRENCY_SYMBOLS = {
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "cafeshop-secret-key-2026")
 
+
+@app.route("/favicon.ico")
+def favicon():
+    svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path><line x1="6" y1="2" x2="6" y2="4"></line><line x1="10" y1="2" x2="10" y2="4"></line><line x1="14" y1="2" x2="14" y2="4"></line></svg>'
+    return Response(svg, mimetype="image/svg+xml")
+
 # ---------------------------------------------------------------------------
 # Database layer
 # ---------------------------------------------------------------------------
@@ -585,16 +591,11 @@ def home():
         return redirect(url_for("dashboard"))
     featured = query_db(
         "SELECT p.*, c.name AS category_name FROM products p "
-        "JOIN categories c ON c.id = p.category_id WHERE p.stock > 0 AND (p.is_featured = 1 OR p.price < 5.0) "
-        "ORDER BY p.is_featured DESC, p.price ASC LIMIT 4"
+        "JOIN categories c ON c.id = p.category_id WHERE p.stock > 0 "
+        "ORDER BY p.is_featured DESC, p.id ASC LIMIT 8"
     )
-    if not featured:
-        featured = query_db(
-            "SELECT p.*, c.name AS category_name FROM products p "
-            "JOIN categories c ON c.id = p.category_id WHERE p.stock > 0 "
-            "ORDER BY p.price ASC LIMIT 4"
-        )
-    return render_template("public_home.html", title="Home", featured=featured)
+    categories = query_db("SELECT * FROM categories ORDER BY name")
+    return render_template("public_home.html", title="Home", featured=featured, categories=categories)
 
 
 @app.route("/menu", methods=["GET", "POST"])
@@ -1414,12 +1415,34 @@ def products():
         " JOIN categories ON products.category_id = categories.id ORDER BY products.name"
     ).fetchall()
     db.close()
+
+    setting = get_setting()
+    low_stock_threshold = parse_int(setting["low_stock_threshold"] if setting and "low_stock_threshold" in setting.keys() else 15, default=15)
+
+    total_products = len(rows)
+    total_categories = len(categories)
+    featured_count = sum(1 for p in rows if p["is_featured"])
+    low_stock_count = sum(1 for p in rows if 0 < p["stock"] <= low_stock_threshold)
+    out_of_stock_count = sum(1 for p in rows if p["stock"] <= 0)
+    total_val = sum(p["price"] * p["stock"] for p in rows)
+
+    stats = {
+        "total_products": total_products,
+        "total_categories": total_categories,
+        "featured": featured_count,
+        "low_stock": low_stock_count,
+        "out_of_stock": out_of_stock_count,
+        "total_value": total_val,
+    }
+
     return render_template(
         "products.html",
         title="Products",
         categories=categories,
         products=rows,
         edit_product=edit_product,
+        stats=stats,
+        low_stock_threshold=low_stock_threshold,
     )
 
 
@@ -1444,6 +1467,8 @@ def inventory():
         " JOIN categories ON products.category_id = categories.id ORDER BY products.name"
     ).fetchall()
     stats = {
+        "total_items": len(rows),
+        "items_count": len(rows),
         "items": len(rows),
         "low": sum(1 for r in rows if 0 < r["stock"] <= LOW_STOCK_THRESHOLD),
         "out": sum(1 for r in rows if r["stock"] <= 0),

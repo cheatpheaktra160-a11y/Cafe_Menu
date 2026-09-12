@@ -1,211 +1,759 @@
 {% extends 'layout.html' %}
 {% block content %}
-<div class="grid grid-2">
-  <div style="display:grid; gap:24px;">
-    <div class="card">
-      <div class="table-header" style="margin-bottom:16px;">
-        <h3><i class="fas fa-mug-hot" style="color:var(--primary);"></i> Product Catalog</h3>
-        <span class="muted">{{ products | length }} Products Total</span>
-      </div>
-
-      <div class="table-responsive">
-        <table>
-          <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead>
-          <tbody>
-            {% for product in products %}
-            <tr>
-              <td>
-                <div style="display:flex; align-items:center; gap:12px;">
-                  <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" style="width:44px; height:44px; border-radius:var(--radius-sm); object-fit:cover;" />
-                  <div>
-                    <strong>{{ product.name }}</strong>
-                    {% if product.is_featured %}
-                    <span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.7rem; padding:1px 6px; margin-left:4px;"><i class="fas fa-star"></i> Top</span>
-                    {% endif %}
-                    <small class="muted" style="display:block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ product.description }}</small>
-                  </div>
-                </div>
-              </td>
-              <td><span class="badge subtle">{{ product.category_name }}</span></td>
-              <td><strong style="color:var(--primary);">{{ money(product.price) }}</strong></td>
-              <td>
-                <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}">
-                  {{ product.stock }}
-                </span>
-              </td>
-              <td style="text-align:right;">
-                <div style="display:flex; gap:6px; justify-content:flex-end;">
-                  <a href="{{ url_for('products', edit=product.id) }}" class="button secondary small"><i class="fas fa-pen-to-square"></i></a>
-                  <form method="post" onsubmit="return confirm('Delete {{ product.name }}?');" style="display:inline-block;">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="action" value="delete_product" />
-                    <input type="hidden" name="product_id" value="{{ product.id }}" />
-                    <button type="submit" class="button danger small"><i class="fas fa-trash-alt"></i></button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="5" class="muted" style="text-align:center;">No products in catalog.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+<!-- Top Summary Stat Cards -->
+<div class="grid grid-4">
+  <div class="card accent stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-mug-hot" style="color:var(--primary); margin-right:6px;"></i> Total Products</span>
+      <span class="stat-icon"><i class="fas fa-boxes-stacked"></i></span>
     </div>
-
-    <div class="card">
-      <div class="table-header" style="margin-bottom:16px;">
-        <h3><i class="fas fa-tags" style="color:var(--primary);"></i> Categories</h3>
-      </div>
-      <div class="table-responsive">
-        <table>
-          <thead><tr><th>Category Name</th><th>Products Count</th><th style="text-align:right;">Action</th></tr></thead>
-          <tbody>
-            {% for category in categories %}
-            <tr>
-              <td><strong>{{ category.name }}</strong></td>
-              <td><span class="badge subtle">{{ category.product_count }} products</span></td>
-              <td style="text-align:right;">
-                {% if category.product_count == 0 %}
-                <form method="post" onsubmit="return confirm('Delete category {{ category.name }}?');" style="display:inline-block;">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <input type="hidden" name="action" value="delete_category" />
-                  <input type="hidden" name="category_id" value="{{ category.id }}" />
-                  <button type="submit" class="button danger small"><i class="fas fa-trash-alt"></i> Delete</button>
-                </form>
-                {% else %}
-                <small class="muted">In use</small>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.total_products }}" data-decimals="0">{{ stats.total_products }}</div>
+      <div class="stat-footer">
+        <span>Active catalog items</span>
+        <span class="stat-pill">Catalog</span>
       </div>
     </div>
   </div>
 
-  <div style="display:grid; gap:24px;">
-    <div class="card">
-      <h3><i class="fas fa-folder-plus" style="color:var(--primary);"></i> Add New Category</h3>
-      <form method="post" style="display:grid; gap:14px; margin-top:14px;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="action" value="add_category" />
-        <label>Category Name
-          <input type="text" name="category_name" placeholder="e.g. Cold Brew, Pastries, Desserts" required />
-        </label>
-        <button class="button"><i class="fas fa-plus"></i> Save Category</button>
-      </form>
+  <div class="card accent-light stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-tags" style="color:var(--info, #5c93c4); margin-right:6px;"></i> Categories</span>
+      <span class="stat-icon" style="background:var(--info-soft); color:var(--info);"><i class="fas fa-layer-group"></i></span>
     </div>
-
-    {% if edit_product %}
-    <div class="card">
-      <h3><i class="fas fa-pen-to-square" style="color:var(--primary);"></i> Edit Product #{{ edit_product.id }}</h3>
-      <form method="post" style="display:grid; gap:14px; margin-top:14px;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="action" value="update_product" />
-        <input type="hidden" name="product_id" value="{{ edit_product.id }}" />
-
-        <label>Product Name *
-          <input type="text" name="product_name" value="{{ edit_product.name }}" required />
-        </label>
-
-        <div class="grid grid-2">
-          <label>Category *
-            <select name="product_category" required>
-              {% for category in categories %}
-              <option value="{{ category.id }}" {% if category.id == edit_product.category_id %}selected{% endif %}>{{ category.name }}</option>
-              {% endfor %}
-            </select>
-          </label>
-
-          <label>Price ({{ currency_symbol }}) *
-            <input type="number" step="0.01" min="0.01" name="product_price" value="{{ edit_product.price }}" required />
-          </label>
-        </div>
-
-        <div class="grid grid-2">
-          <label>Initial Stock *
-            <input type="number" min="0" name="product_stock" value="{{ edit_product.stock }}" required />
-          </label>
-
-          <label style="display:flex; align-items:center; gap:8px; margin-top:24px; cursor:pointer;">
-            <input type="checkbox" name="is_featured" value="1" {% if edit_product.is_featured %}checked{% endif %} style="width:18px; height:18px;" />
-            <strong>Feature on Homepage / Menu Top</strong>
-          </label>
-        </div>
-
-        <label>Description
-          <textarea name="product_description" rows="2">{{ edit_product.description }}</textarea>
-        </label>
-
-        <label>Image URL (Unsplash or static path)
-          <input type="text" name="product_image" value="{{ edit_product.image_url }}" placeholder="https://images.unsplash.com/..." />
-        </label>
-
-        <label>Customization Options / Tags (comma separated)
-          <input type="text" name="product_tags" value="{{ edit_product.tags }}" placeholder="Ice, Sugar, Extra shot, Oat milk" />
-        </label>
-
-        <div style="display:flex; gap:10px; margin-top:8px;">
-          <button type="submit" class="button"><i class="fas fa-save"></i> Save Changes</button>
-          <a href="{{ url_for('products') }}" class="button secondary">Cancel Edit</a>
-        </div>
-      </form>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.total_categories }}" data-decimals="0">{{ stats.total_categories }}</div>
+      <div class="stat-footer">
+        <span>Menu classifications</span>
+        <span class="stat-pill" style="color:var(--info);">Organized</span>
+      </div>
     </div>
-    {% else %}
-    <div class="card">
-      <h3><i class="fas fa-plus-circle" style="color:var(--primary);"></i> Add New Product</h3>
-      <form method="post" style="display:grid; gap:14px; margin-top:14px;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="action" value="add_product" />
+  </div>
 
-        <label>Product Name *
-          <input type="text" name="product_name" placeholder="e.g. Vanilla Cold Brew" required />
-        </label>
-
-        <div class="grid grid-2">
-          <label>Category *
-            <select name="product_category" required>
-              <option value="">Select category</option>
-              {% for category in categories %}
-              <option value="{{ category.id }}">{{ category.name }}</option>
-              {% endfor %}
-            </select>
-          </label>
-
-          <label>Price ({{ currency_symbol }}) *
-            <input type="number" step="0.01" min="0.01" name="product_price" placeholder="4.50" required />
-          </label>
-        </div>
-
-        <div class="grid grid-2">
-          <label>Initial Stock *
-            <input type="number" min="0" name="product_stock" placeholder="25" required />
-          </label>
-
-          <label style="display:flex; align-items:center; gap:8px; margin-top:24px; cursor:pointer;">
-            <input type="checkbox" name="is_featured" value="1" style="width:18px; height:18px;" />
-            <strong>Feature on Homepage / Menu Top</strong>
-          </label>
-        </div>
-
-        <label>Description
-          <textarea name="product_description" rows="2" placeholder="Brief product description..."></textarea>
-        </label>
-
-        <label>Image URL (Unsplash or static path)
-          <input type="text" name="product_image" placeholder="https://images.unsplash.com/..." />
-        </label>
-
-        <label>Customization Options / Tags (comma separated)
-          <input type="text" name="product_tags" placeholder="Ice, Sugar, Extra shot, Oat milk" />
-        </label>
-
-        <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-plus"></i> Save Product</button>
-      </form>
+  <div class="card stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-star" style="color:#f59e0b; margin-right:6px;"></i> Featured Items</span>
+      <span class="stat-icon" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b;"><i class="fas fa-award"></i></span>
     </div>
-    {% endif %}
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.featured }}" data-decimals="0">{{ stats.featured }}</div>
+      <div class="stat-footer">
+        <span>Home &amp; Menu Highlights</span>
+        <span class="stat-pill" style="color:#f59e0b;">Favorites</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card accent-dark stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-triangle-exclamation" style="color:var(--danger); margin-right:6px;"></i> Stock Alerts</span>
+      <span class="stat-icon" style="background:var(--danger-soft); color:var(--danger);"><i class="fas fa-bell"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.low_stock + stats.out_of_stock }}" data-decimals="0">{{ stats.low_stock + stats.out_of_stock }}</div>
+      <div class="stat-footer">
+        <span>{{ stats.out_of_stock }} out, {{ stats.low_stock }} low</span>
+        <span class="stat-pill" style="color:var(--danger);">Needs attention</span>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- Main Products & Categories Management Shell -->
+<div class="card mt-1">
+  <!-- Top Navigation & Action Toolbar -->
+  <div class="table-header" style="margin-bottom:20px; flex-wrap:wrap; gap:16px;">
+    <div class="prod-tab-bar" id="prod-tab-bar">
+      <button type="button" class="prod-tab-btn active" data-tab="catalog" id="tab-btn-catalog">
+        <i class="fas fa-mug-hot"></i> Product Catalog
+        <span class="badge subtle" id="catalog-count-badge">{{ products | length }}</span>
+      </button>
+      <button type="button" class="prod-tab-btn" data-tab="categories" id="tab-btn-categories">
+        <i class="fas fa-folder-tree"></i> Categories
+        <span class="badge subtle">{{ categories | length }}</span>
+      </button>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-left:auto;">
+      <button type="button" class="button btn-sheen" id="btn-open-add-product" style="min-height:42px;">
+        <i class="fas fa-plus"></i> <span>Add New Product</span>
+      </button>
+      <button type="button" class="button secondary" id="btn-open-add-category" style="min-height:42px;">
+        <i class="fas fa-folder-plus"></i> <span>New Category</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TAB 1: PRODUCT CATALOG PANE -->
+  <div id="tab-pane-catalog" class="prod-tab-pane">
+    <!-- Search & Filter Controls -->
+    <div class="menu-toolbar card" style="padding:14px; margin-bottom:20px; background:rgba(0,0,0,0.25);">
+      <div class="search-input-wrap" style="flex:1; min-width:240px;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="product-search" placeholder="Search product name, category, description, or tags..." />
+      </div>
+
+      <div class="category-list" id="prod-category-filter-list" style="margin:0;">
+        <button type="button" class="category-button active" data-category="all">
+          All ({{ products | length }})
+        </button>
+        {% for cat in categories %}
+        <button type="button" class="category-button" data-category="{{ cat.id }}">
+          {{ cat.name }} ({{ cat.product_count }})
+        </button>
+        {% endfor %}
+      </div>
+
+      <div class="inv-filter-chips" style="display:inline-flex; gap:6px; background:rgba(0,0,0,0.25); padding:4px; border-radius:var(--radius-md); border:1px solid var(--border);">
+        <button type="button" class="inv-filter-btn active" data-stock-filter="all">All</button>
+        <button type="button" class="inv-filter-btn" data-stock-filter="instock">In Stock</button>
+        <button type="button" class="inv-filter-btn" data-stock-filter="low">Low (&le; {{ low_stock_threshold }})</button>
+        <button type="button" class="inv-filter-btn" data-stock-filter="out">Out (0)</button>
+      </div>
+    </div>
+
+    <!-- Desktop Table View (100% Full Width, Clean & Spacious) -->
+    <div class="table-wrapper product-table-desktop">
+      <table style="width:100%;">
+        <thead>
+          <tr>
+            <th style="min-width:240px;">Product Item</th>
+            <th style="min-width:130px;">Category</th>
+            <th style="min-width:110px;">Price</th>
+            <th style="min-width:120px;">Stock Level</th>
+            <th style="min-width:160px;">Tags / Options</th>
+            <th style="text-align:right; min-width:120px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="product-table-body">
+          {% for product in products %}
+          <tr class="product-row"
+              data-id="{{ product.id }}"
+              data-name="{{ product.name | lower }}"
+              data-category-id="{{ product.category_id }}"
+              data-category-name="{{ product.category_name | lower }}"
+              data-description="{{ (product.description or '') | lower }}"
+              data-tags="{{ (product.tags or '') | lower }}"
+              data-stock="{{ product.stock }}"
+              data-stock-status="{{ 'out' if product.stock <= 0 else ('low' if product.stock <= low_stock_threshold else 'instock') }}">
+            <td>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div class="prod-thumb-wrap">
+                  <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" class="prod-thumb-img" loading="lazy" onerror="this.onerror=null; this.src='/static/img/placeholder.svg';" />
+                </div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <strong style="font-size:0.96rem; color:var(--text);">{{ product.name }}</strong>
+                    {% if product.is_featured %}
+                    <span class="badge" style="background:rgba(245, 158, 11, 0.18); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.35); font-size:0.7rem; padding:1px 6px;">
+                      <i class="fas fa-star"></i> Featured
+                    </span>
+                    {% endif %}
+                  </div>
+                  <small class="muted" style="display:block; max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px;">
+                    {{ product.description or 'Handcrafted specialty drink/pastry.' }}
+                  </small>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge subtle">{{ product.category_name }}</span>
+            </td>
+            <td>
+              <strong style="color:var(--primary); font-size:1.05rem;">{{ money(product.price) }}</strong>
+            </td>
+            <td>
+              <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}">
+                {% if product.stock <= 0 %}
+                <i class="fas fa-ban"></i> Out of stock
+                {% elif product.stock <= low_stock_threshold %}
+                <i class="fas fa-triangle-exclamation"></i> {{ product.stock }} left
+                {% else %}
+                <i class="fas fa-check"></i> {{ product.stock }} in stock
+                {% endif %}
+              </span>
+            </td>
+            <td>
+              {% if product.tags %}
+              <div class="product-tags" style="display:flex; flex-wrap:wrap; gap:4px;">
+                {% for tag in product.tags.split(',') if tag.strip() %}
+                <span class="product-tag" style="font-size:0.7rem; padding:2px 7px;">{{ tag.strip() }}</span>
+                {% endfor %}
+              </div>
+              {% else %}
+              <span class="muted" style="font-size:0.8rem;">None</span>
+              {% endif %}
+            </td>
+            <td style="text-align:right;">
+              <div style="display:flex; gap:8px; justify-content:flex-end;">
+                <button type="button" class="button secondary small btn-edit-product"
+                        data-product='{{ {"id": product.id, "name": product.name, "category_id": product.category_id, "price": product.price, "stock": product.stock, "description": product.description or "", "image_url": product.image_url or "", "tags": product.tags or "", "is_featured": product.is_featured} | tojson }}'
+                        title="Edit Product Details">
+                  <i class="fas fa-pen-to-square"></i> <span class="hide-mobile">Edit</span>
+                </button>
+                <form method="post" onsubmit="return confirm('Are you sure you want to delete \'{{ product.name }}\'?');" style="display:inline-block; margin:0;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="action" value="delete_product" />
+                  <input type="hidden" name="product_id" value="{{ product.id }}" />
+                  <button type="submit" class="button danger small" title="Delete Product">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="muted" style="text-align:center; padding:40px;">
+              <i class="fas fa-mug-hot" style="font-size:2.5rem; margin-bottom:12px; display:block; opacity:0.5;"></i>
+              No products found in catalog.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile Product Cards View (Touch-Optimized for Phone Screens) -->
+    <div class="product-mobile-cards" id="product-mobile-card-list">
+      {% for product in products %}
+      <div class="product-mobile-card product-row"
+           data-id="{{ product.id }}"
+           data-name="{{ product.name | lower }}"
+           data-category-id="{{ product.category_id }}"
+           data-category-name="{{ product.category_name | lower }}"
+           data-description="{{ (product.description or '') | lower }}"
+           data-tags="{{ (product.tags or '') | lower }}"
+           data-stock="{{ product.stock }}"
+           data-stock-status="{{ 'out' if product.stock <= 0 else ('low' if product.stock <= low_stock_threshold else 'instock') }}">
+        <div style="display:flex; gap:12px; align-items:flex-start;">
+          <div class="prod-thumb-wrap" style="width:60px; height:60px; border-radius:var(--radius-md);">
+            <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" class="prod-thumb-img" loading="lazy" onerror="this.onerror=null; this.src='/static/img/placeholder.svg';" />
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px;">
+              <strong style="font-size:1rem; line-height:1.2;">{{ product.name }}</strong>
+              <strong style="color:var(--primary); font-size:1.1rem; white-space:nowrap;">{{ money(product.price) }}</strong>
+            </div>
+            <div style="display:flex; flex-wrap:wrap; gap:6px; margin:6px 0;">
+              <span class="badge subtle" style="font-size:0.75rem;">{{ product.category_name }}</span>
+              <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}" style="font-size:0.75rem;">
+                {{ product.stock }} in stock
+              </span>
+              {% if product.is_featured %}
+              <span class="badge" style="background:rgba(245, 158, 11, 0.18); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.35); font-size:0.7rem;">
+                <i class="fas fa-star"></i> Featured
+              </span>
+              {% endif %}
+            </div>
+            <p class="muted" style="font-size:0.84rem; margin:0; line-height:1.35;">{{ product.description or 'Handcrafted specialty drink/pastry.' }}</p>
+          </div>
+        </div>
+
+        {% if product.tags %}
+        <div class="product-tags" style="display:flex; flex-wrap:wrap; gap:4px;">
+          {% for tag in product.tags.split(',') if tag.strip() %}
+          <span class="product-tag" style="font-size:0.7rem;">{{ tag.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; border-top:1px solid var(--border); padding-top:10px;">
+          <button type="button" class="button secondary small btn-edit-product"
+                  data-product='{{ {"id": product.id, "name": product.name, "category_id": product.category_id, "price": product.price, "stock": product.stock, "description": product.description or "", "image_url": product.image_url or "", "tags": product.tags or "", "is_featured": product.is_featured} | tojson }}'
+                  style="justify-content:center; min-height:40px;">
+            <i class="fas fa-pen-to-square"></i> Edit
+          </button>
+          <form method="post" onsubmit="return confirm('Are you sure you want to delete \'{{ product.name }}\'?');" style="margin:0;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="action" value="delete_product" />
+            <input type="hidden" name="product_id" value="{{ product.id }}" />
+            <button type="submit" class="button danger small" style="width:100%; justify-content:center; min-height:40px;">
+              <i class="fas fa-trash-alt"></i> Delete
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Empty Filter Notice -->
+    <div id="no-products-match" class="card" style="display:none; text-align:center; padding:36px; margin-top:16px;">
+      <i class="fas fa-magnifying-glass" style="font-size:2.2rem; color:var(--muted); margin-bottom:12px;"></i>
+      <h4 style="margin:0;">No products match your filter</h4>
+      <p class="muted" style="margin:4px 0 14px; font-size:0.9rem;">Try clearing the search term or category filter.</p>
+      <button type="button" class="button secondary small" id="btn-reset-prod-filter">Reset Filters</button>
+    </div>
+  </div>
+
+  <!-- TAB 2: CATEGORIES MANAGEMENT PANE -->
+  <div id="tab-pane-categories" class="prod-tab-pane" style="display:none;">
+    <div class="grid grid-2" style="gap:24px; align-items:start;">
+      <!-- Categories List Table -->
+      <div class="card" style="background:rgba(0,0,0,0.2);">
+        <div class="table-header" style="margin-bottom:14px;">
+          <div>
+            <h3 style="margin:0; font-size:1.2rem;"><i class="fas fa-layer-group" style="color:var(--primary);"></i> Menu Categories</h3>
+            <span class="muted" style="font-size:0.85rem;">{{ categories | length }} categories defined</span>
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table style="width:100%;">
+            <thead>
+              <tr>
+                <th>Category Name</th>
+                <th>Product Count</th>
+                <th style="text-align:right;">Status / Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for category in categories %}
+              <tr>
+                <td>
+                  <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:32px; height:32px; border-radius:var(--radius-sm); background:var(--primary-soft); color:var(--primary); display:grid; place-items:center; font-size:0.9rem;">
+                      <i class="fas fa-folder"></i>
+                    </div>
+                    <strong style="font-size:0.95rem;">{{ category.name }}</strong>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge subtle" style="font-size:0.82rem;">
+                    {{ category.product_count }} {% if category.product_count == 1 %}product{% else %}products{% endif %}
+                  </span>
+                </td>
+                <td style="text-align:right;">
+                  {% if category.product_count == 0 %}
+                  <form method="post" onsubmit="return confirm('Delete empty category \'{{ category.name }}\'?');" style="display:inline-block; margin:0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="action" value="delete_category" />
+                    <input type="hidden" name="category_id" value="{{ category.id }}" />
+                    <button type="submit" class="button danger small" title="Delete Category">
+                      <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                  </form>
+                  {% else %}
+                  <span class="badge badge-ok" style="font-size:0.75rem;"><i class="fas fa-link"></i> In use ({{ category.product_count }})</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Add Category Card -->
+      <div class="card" style="background:rgba(0,0,0,0.2);">
+        <h3 style="margin:0; font-size:1.2rem;"><i class="fas fa-folder-plus" style="color:var(--primary);"></i> Create New Category</h3>
+        <p class="muted" style="margin:6px 0 16px; font-size:0.88rem;">Add a new category to group your coffee, teas, or food items.</p>
+        
+        <form method="post" style="display:grid; gap:16px;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="action" value="add_category" />
+          <label>Category Name *
+            <input type="text" name="category_name" placeholder="e.g. Cold Brew, Bakery, Signature Drinks" required />
+          </label>
+          <button type="submit" class="button"><i class="fas fa-plus"></i> Save Category</button>
+        </form>
+
+        <div style="margin-top:24px; padding-top:16px; border-top:1px solid var(--border);">
+          <small class="muted" style="display:block; margin-bottom:8px;">Suggested Categories:</small>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            <button type="button" class="prod-preset-pill" onclick="document.querySelector('input[name=category_name]').value='Espresso & Hot Coffee';">Espresso</button>
+            <button type="button" class="prod-preset-pill" onclick="document.querySelector('input[name=category_name]').value='Cold Brew & Iced';">Cold Brew</button>
+            <button type="button" class="prod-preset-pill" onclick="document.querySelector('input[name=category_name]').value='Artisan Teas';">Teas</button>
+            <button type="button" class="prod-preset-pill" onclick="document.querySelector('input[name=category_name]').value='Pastries & Bakery';">Pastries</button>
+            <button type="button" class="prod-preset-pill" onclick="document.querySelector('input[name=category_name]').value='Fresh Sandwiches';">Sandwiches</button>
+            <button type="button" class="prod-preset-pill" onclick="document.querySelector('input[name=category_name]').value='Desserts & Treats';">Desserts</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 1: ADD NEW PRODUCT DIALOG                                           -->
+<!-- ========================================================================= -->
+<div class="modal-backdrop" id="modal-add-product" aria-hidden="true">
+  <div class="modal" style="width:min(620px, calc(100vw - 28px));">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-plus-circle" style="color:var(--primary);"></i> Add New Product
+      </h3>
+      <button type="button" class="button secondary small modal-close-btn" style="padding:6px 10px;" aria-label="Close Dialog">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+
+    <form method="post" id="form-add-product" style="display:grid; gap:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="add_product" />
+
+      <label>Product Name *
+        <input type="text" name="product_name" placeholder="e.g. Hazelnut Caramel Latte" required />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Category *
+          <select name="product_category" required>
+            <option value="">Select Category</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>Price ({{ currency_symbol }}) *
+          <input type="number" step="0.01" min="0.01" name="product_price" placeholder="4.50" required />
+        </label>
+      </div>
+
+      <div class="grid grid-2">
+        <label>Initial Stock Units *
+          <input type="number" min="0" name="product_stock" value="25" placeholder="25" required />
+        </label>
+
+        <label style="display:flex; align-items:center; gap:8px; margin-top:24px; cursor:pointer;">
+          <input type="checkbox" name="is_featured" value="1" style="width:18px; height:18px;" />
+          <span><strong>Feature on Homepage &amp; Menu</strong></span>
+        </label>
+      </div>
+
+      <label>Description
+        <textarea name="product_description" rows="2" placeholder="Rich artisan espresso with handcrafted steamed milk and vanilla..."></textarea>
+      </label>
+
+      <div>
+        <label style="margin-bottom:4px; display:block;">Image URL (Unsplash or direct URL)</label>
+        <input type="text" name="product_image" id="add-product-image-input" placeholder="https://images.unsplash.com/..." />
+        
+        <div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:6px;">
+          <small class="muted" style="width:100%;">Sample Presets (click to use):</small>
+          <button type="button" class="prod-preset-pill" onclick="setAddImage('https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80')">Espresso</button>
+          <button type="button" class="prod-preset-pill" onclick="setAddImage('https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=800&q=80')">Cappuccino</button>
+          <button type="button" class="prod-preset-pill" onclick="setAddImage('https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=800&q=80')">Cold Brew</button>
+          <button type="button" class="prod-preset-pill" onclick="setAddImage('https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=800&q=80')">Croissant</button>
+          <button type="button" class="prod-preset-pill" onclick="setAddImage('https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=800&q=80')">Matcha</button>
+          <button type="button" class="prod-preset-pill" onclick="setAddImage('https://images.unsplash.com/photo-1542990253-0d0f5be5f0ed?auto=format&fit=crop&w=800&q=80')">Hot Chocolate</button>
+        </div>
+
+        <div class="img-preview-box mt-1" id="add-img-preview-box">
+          <span class="muted" style="font-size:0.85rem;"><i class="fas fa-image"></i> Image Preview will appear here</span>
+        </div>
+      </div>
+
+      <label>Customization Options / Tags (comma separated)
+        <input type="text" name="product_tags" placeholder="Ice, Sugar, Oat Milk, Extra Shot" />
+      </label>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+        <button type="button" class="button secondary modal-close-btn">Cancel</button>
+        <button type="submit" class="button btn-sheen"><i class="fas fa-plus"></i> Save Product</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: EDIT PRODUCT DIALOG                                              -->
+<!-- ========================================================================= -->
+<div class="modal-backdrop {% if edit_product %}is-open{% endif %}" id="modal-edit-product" aria-hidden="{% if edit_product %}false{% else %}true{% endif %}">
+  <div class="modal" style="width:min(620px, calc(100vw - 28px));">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-pen-to-square" style="color:var(--primary);"></i> Edit Product <span id="edit-prod-id-label">#{{ edit_product.id if edit_product else '' }}</span>
+      </h3>
+      <button type="button" class="button secondary small modal-close-btn" style="padding:6px 10px;" aria-label="Close Dialog">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+
+    <form method="post" id="form-edit-product" style="display:grid; gap:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="update_product" />
+      <input type="hidden" name="product_id" id="edit-product-id" value="{{ edit_product.id if edit_product else '' }}" />
+
+      <label>Product Name *
+        <input type="text" name="product_name" id="edit-product-name" value="{{ edit_product.name if edit_product else '' }}" required />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Category *
+          <select name="product_category" id="edit-product-category" required>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if edit_product and cat.id == edit_product.category_id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>Price ({{ currency_symbol }}) *
+          <input type="number" step="0.01" min="0.01" name="product_price" id="edit-product-price" value="{{ edit_product.price if edit_product else '' }}" required />
+        </label>
+      </div>
+
+      <div class="grid grid-2">
+        <label>Stock Level *
+          <input type="number" min="0" name="product_stock" id="edit-product-stock" value="{{ edit_product.stock if edit_product else '' }}" required />
+        </label>
+
+        <label style="display:flex; align-items:center; gap:8px; margin-top:24px; cursor:pointer;">
+          <input type="checkbox" name="is_featured" id="edit-product-featured" value="1" {% if edit_product and edit_product.is_featured %}checked{% endif %} style="width:18px; height:18px;" />
+          <span><strong>Feature on Homepage &amp; Menu</strong></span>
+        </label>
+      </div>
+
+      <label>Description
+        <textarea name="product_description" id="edit-product-description" rows="2">{{ edit_product.description if edit_product else '' }}</textarea>
+      </label>
+
+      <div>
+        <label style="margin-bottom:4px; display:block;">Image URL</label>
+        <input type="text" name="product_image" id="edit-product-image-input" value="{{ edit_product.image_url if edit_product else '' }}" placeholder="https://images.unsplash.com/..." />
+        
+        <div class="img-preview-box mt-1" id="edit-img-preview-box">
+          {% if edit_product and edit_product.image_url %}
+          <img src="{{ edit_product.image_url }}" alt="Preview" />
+          {% else %}
+          <span class="muted" style="font-size:0.85rem;"><i class="fas fa-image"></i> Image Preview</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <label>Customization Options / Tags (comma separated)
+        <input type="text" name="product_tags" id="edit-product-tags" value="{{ edit_product.tags if edit_product else '' }}" placeholder="Ice, Sugar, Oat Milk, Extra Shot" />
+      </label>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+        <button type="button" class="button secondary modal-close-btn">Cancel</button>
+        <button type="submit" class="button btn-sheen"><i class="fas fa-save"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: ADD NEW CATEGORY MODAL                                           -->
+<!-- ========================================================================= -->
+<div class="modal-backdrop" id="modal-add-category" aria-hidden="true">
+  <div class="modal" style="width:min(480px, calc(100vw - 28px));">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <h3 style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-folder-plus" style="color:var(--primary);"></i> Add Category
+      </h3>
+      <button type="button" class="button secondary small modal-close-btn" style="padding:6px 10px;" aria-label="Close Dialog">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+
+    <form method="post" style="display:grid; gap:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="add_category" />
+
+      <label>Category Name *
+        <input type="text" name="category_name" placeholder="e.g. Specialty Cold Brew, Artisan Pastries" required />
+      </label>
+
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px;">
+        <button type="button" class="button secondary modal-close-btn">Cancel</button>
+        <button type="submit" class="button"><i class="fas fa-plus"></i> Save Category</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Products Management Interactive Controller -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Tab Switching (Catalog vs Categories)
+  const tabBtns = document.querySelectorAll('.prod-tab-btn');
+  const tabPanes = {
+    catalog: document.getElementById('tab-pane-catalog'),
+    categories: document.getElementById('tab-pane-categories')
+  };
+
+  function switchTab(tab) {
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+    Object.entries(tabPanes).forEach(([k, pane]) => {
+      if (pane) pane.style.display = (k === tab) ? 'block' : 'none';
+    });
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      if (history.replaceState) {
+        history.replaceState(null, null, '#' + tab);
+      }
+      switchTab(tab);
+    });
+  });
+
+  if (window.location.hash === '#categories' || window.location.search.includes('tab=categories')) {
+    switchTab('categories');
+  }
+
+  // Keyboard escape key to close modals
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-backdrop.is-open').forEach(m => closeModal(m));
+    }
+  });
+
+  // 2. Modals Management
+  const modalAddProd = document.getElementById('modal-add-product');
+  const modalEditProd = document.getElementById('modal-edit-product');
+  const modalAddCat = document.getElementById('modal-add-category');
+
+  const openModal = (modal) => {
+    if (!modal) return;
+    if (modal.parentElement !== document.body) {
+      document.body.appendChild(modal);
+    }
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    const firstInput = modal.querySelector('input:not([type=hidden]), select, textarea');
+    if (firstInput) setTimeout(() => firstInput.focus(), 80);
+  };
+
+  const closeModal = (modal) => {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+  };
+
+  document.getElementById('btn-open-add-product')?.addEventListener('click', () => openModal(modalAddProd));
+  document.getElementById('btn-open-add-category')?.addEventListener('click', () => openModal(modalAddCat));
+
+  document.querySelectorAll('.modal-close-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const modal = e.target.closest('.modal-backdrop');
+      closeModal(modal);
+    });
+  });
+
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+    backdrop.addEventListener('click', (e) => {
+      if (e.target === backdrop) closeModal(backdrop);
+    });
+  });
+
+  // 3. Edit Product Buttons (Instant client-side prefill)
+  document.querySelectorAll('.btn-edit-product').forEach(btn => {
+    btn.addEventListener('click', () => {
+      try {
+        const prod = JSON.parse(btn.dataset.product);
+        document.getElementById('edit-product-id').value = prod.id;
+        document.getElementById('edit-prod-id-label').textContent = '#' + prod.id;
+        document.getElementById('edit-product-name').value = prod.name || '';
+        document.getElementById('edit-product-category').value = prod.category_id;
+        document.getElementById('edit-product-price').value = prod.price;
+        document.getElementById('edit-product-stock').value = prod.stock;
+        document.getElementById('edit-product-featured').checked = !!prod.is_featured;
+        document.getElementById('edit-product-description').value = prod.description || '';
+        document.getElementById('edit-product-image-input').value = prod.image_url || '';
+        document.getElementById('edit-product-tags').value = prod.tags || '';
+        
+        updateImagePreview('edit-product-image-input', 'edit-img-preview-box');
+        openModal(modalEditProd);
+      } catch (err) {
+        console.error('Failed to parse product data for edit:', err);
+      }
+    });
+  });
+
+  // 4. Live Image Previews
+  window.setAddImage = function(url) {
+    const input = document.getElementById('add-product-image-input');
+    if (input) {
+      input.value = url;
+      updateImagePreview('add-product-image-input', 'add-img-preview-box');
+    }
+  };
+
+  function updateImagePreview(inputId, previewBoxId) {
+    const input = document.getElementById(inputId);
+    const box = document.getElementById(previewBoxId);
+    if (!input || !box) return;
+    const url = input.value.trim();
+    if (url) {
+      box.innerHTML = `<img src="${url}" alt="Preview" onerror="this.parentElement.innerHTML='<span class=\\'muted\\'><i class=\\'fas fa-triangle-exclamation\\'></i> Image failed to load</span>'" />`;
+    } else {
+      box.innerHTML = `<span class="muted" style="font-size:0.85rem;"><i class="fas fa-image"></i> Image Preview</span>`;
+    }
+  }
+
+  document.getElementById('add-product-image-input')?.addEventListener('input', () => {
+    updateImagePreview('add-product-image-input', 'add-img-preview-box');
+  });
+  document.getElementById('edit-product-image-input')?.addEventListener('input', () => {
+    updateImagePreview('edit-product-image-input', 'edit-img-preview-box');
+  });
+
+  // 5. Live Search & Category Filtering
+  const searchInput = document.getElementById('product-search');
+  const catFilterBtns = document.querySelectorAll('#prod-category-filter-list .category-button');
+  const stockFilterBtns = document.querySelectorAll('[data-stock-filter]');
+  const productRows = document.querySelectorAll('.product-row');
+  const noMatchCard = document.getElementById('no-products-match');
+
+  let activeCategory = 'all';
+  let activeStock = 'all';
+
+  function applyFilters() {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    let visibleCount = 0;
+
+    productRows.forEach(row => {
+      const name = row.dataset.name || '';
+      const catId = row.dataset.categoryId || '';
+      const catName = row.dataset.categoryName || '';
+      const desc = row.dataset.description || '';
+      const tags = row.dataset.tags || '';
+      const stockStatus = row.dataset.stockStatus || 'instock';
+
+      const matchesSearch = !q || name.includes(q) || catName.includes(q) || desc.includes(q) || tags.includes(q);
+      const matchesCat = (activeCategory === 'all') || (catId === activeCategory);
+      const matchesStock = (activeStock === 'all') || (stockStatus === activeStock);
+
+      const isVisible = matchesSearch && matchesCat && matchesStock;
+      row.style.display = isVisible ? '' : 'none';
+      if (isVisible) visibleCount++;
+    });
+
+    if (noMatchCard) {
+      noMatchCard.style.display = (visibleCount === 0) ? 'block' : 'none';
+    }
+  }
+
+  searchInput?.addEventListener('input', applyFilters);
+
+  catFilterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      catFilterBtns.forEach(b => b.classList.toggle('active', b === btn));
+      activeCategory = btn.dataset.category;
+      applyFilters();
+    });
+  });
+
+  stockFilterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      stockFilterBtns.forEach(b => b.classList.toggle('active', b === btn));
+      activeStock = btn.dataset.stockFilter;
+      applyFilters();
+    });
+  });
+
+  document.getElementById('btn-reset-prod-filter')?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    catFilterBtns.forEach(b => b.classList.toggle('active', b.dataset.category === 'all'));
+    stockFilterBtns.forEach(b => b.classList.toggle('active', b.dataset.stockFilter === 'all'));
+    activeCategory = 'all';
+    activeStock = 'all';
+    applyFilters();
+  });
+});
+</script>
 {% endblock %}

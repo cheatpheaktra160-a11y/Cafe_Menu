@@ -258,11 +258,20 @@
       } else if (diffMins < 5) {
         valSpan.textContent = `${diffMins}m ago`;
         el.className = 'kds-timer timer-green';
-      } else if (diffMins < 10) {
+      } else if (diffMins < 15) {
         valSpan.textContent = `${diffMins}m ago`;
         el.className = 'kds-timer timer-amber';
+      } else if (diffMins < 60) {
+        valSpan.textContent = `${diffMins}m ago`;
+        el.className = 'kds-timer timer-red';
+      } else if (diffMins < 1440) {
+        const hours = Math.floor(diffMins / 60);
+        const mins = diffMins % 60;
+        valSpan.textContent = mins > 0 ? `${hours}h ${mins}m ago` : `${hours}h ago`;
+        el.className = 'kds-timer timer-red';
       } else {
-        valSpan.textContent = `${diffMins}m ago!`;
+        const days = Math.floor(diffMins / 1440);
+        valSpan.textContent = `${days}d ago`;
         el.className = 'kds-timer timer-red';
       }
     });

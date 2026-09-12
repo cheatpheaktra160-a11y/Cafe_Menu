@@ -1,85 +1,302 @@
 {% extends 'layout.html' %}
 {% block content %}
 <div class="public-landing">
-  <section class="hero-panel">
+  <!-- 1. HERO SECTION WITH AMBIENT GLOW, STEAM ANIMATION & FLOATING BADGES -->
+  <section class="hero-panel hero-panel-dynamic">
     <div class="hero-copy">
-      <p class="eyebrow"><span class="live-dot" style="margin-right:6px;"></span> Freshly Roasted Daily</p>
-      <h1>Welcome to {{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h1>
-      <p>Savor artisan espresso drinks, slow-steeped cold brews, and comforting freshly baked pastries in a warm, relaxed ambiance.</p>
-      <div class="hero-actions">
-        <a href="{{ url_for('menu') }}" class="button" style="padding:16px 28px; font-size:1.05rem;">
-          Order Online Now
+      <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.28); padding:6px 14px; border-radius:999px; margin-bottom:14px;">
+        <span class="live-dot" style="background:#22c55e; box-shadow:0 0 10px #22c55e;"></span>
+        <span class="eyebrow" style="color:#fcd34d; font-size:0.78rem; font-weight:800; letter-spacing:0.06em; margin:0;">Freshly Roasted Daily &bull; Sourced Ethically</span>
+      </div>
+
+      <h1 style="font-size:clamp(2.2rem, 4.5vw, 3.8rem); line-height:1.12; margin:6px 0 16px; font-weight:800; letter-spacing:-0.03em;">
+        Welcome to <span class="hero-title-gradient">{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</span>
+      </h1>
+
+      <p style="color:var(--text-secondary, #cbd5e1); font-size:1.12rem; line-height:1.6; max-width:540px; margin:0 0 24px;">
+        Savor artisan espresso drinks, slow-steeped cold brews, and comforting freshly baked pastries in a warm, relaxed ambiance.
+      </p>
+
+      <div class="hero-actions" style="display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
+        <a href="{{ url_for('menu') }}" class="button btn-sheen-glow" style="padding:16px 32px; font-size:1.08rem; display:inline-flex; align-items:center; gap:10px; text-decoration:none;">
+          <i class="fas fa-mug-hot" style="font-size:1.15rem;"></i>
+          <span>Order Online Now</span>
         </a>
-        <a href="{{ url_for('track_order') }}" class="button secondary" style="padding:16px 24px; font-size:1.05rem;">
-          Track Order
+        <a href="{{ url_for('track_order') }}" class="button secondary" style="padding:16px 26px; font-size:1.05rem; display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
+          <i class="fas fa-location-crosshairs" style="color:var(--primary);"></i>
+          <span>Track Order</span>
         </a>
       </div>
-      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-top:28px; color:var(--muted); font-size:0.9rem;">
-        <span>Mon-Sun: 7:30 AM - 9:30 PM</span>
-        <span style="opacity:0.4;">&bull;</span>
-        <span>{{ setting.store_address if setting and setting.store_address else 'Duem Mean coffee Takhmau' }}</span>
-        <span style="opacity:0.4;">&bull;</span>
-        <span>{{ setting.store_phone if setting and setting.store_phone else '(+885) 71 3030 308' }}</span>
+
+      <!-- Quick Store Info Bar -->
+      <div class="hero-info-bar">
+        <div class="hero-info-item">
+          <i class="fas fa-clock"></i>
+          <span>Open Daily: <strong>7:30 AM &ndash; 9:30 PM</strong></span>
+        </div>
+        <span style="opacity:0.3; display:inline-block;" class="hide-mobile">&bull;</span>
+        <div class="hero-info-item">
+          <i class="fas fa-location-dot"></i>
+          <span>{{ setting.store_address if setting and setting.store_address else 'Duem Mean coffee Takhmau' }}</span>
+        </div>
+        <span style="opacity:0.3; display:inline-block;" class="hide-mobile">&bull;</span>
+        <div class="hero-info-item">
+          <i class="fas fa-phone"></i>
+          <span>{{ setting.store_phone if setting and setting.store_phone else '(+885) 71 3030 308' }}</span>
+        </div>
       </div>
     </div>
 
-    <div class="hero-visual hero-visual-clean">
-      <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=80" alt="PHEAKTRA COFFEE" />
+    <!-- Right Hero Visual with Steam & 3D Floating Badges -->
+    <div class="hero-visual hero-visual-clean" style="position:relative; min-height:360px;">
+      <div class="hero-glow-halo"></div>
 
-      <!-- Clean Floating Badges -->
-      <div class="hero-floating-card top-left">
-        <div>
-          <span style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Customer Favorite</span>
-          <strong style="display:block; font-size:0.95rem; margin-top:2px;">Caramel Macchiato</strong>
+      <!-- Rising Coffee Steam Animation -->
+      <div class="coffee-steam-container" aria-hidden="true">
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+        <div class="steam-line"></div>
+      </div>
+
+      <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=80"
+           alt="PHEAKTRA COFFEE Showcase"
+           style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius-lg); filter:brightness(0.9) contrast(1.05);"
+           onerror="this.onerror=null; this.src='/static/img/placeholder.svg';" />
+
+      <!-- Floating 3D Badge 1 (Top-Left): Rating -->
+      <div class="hero-floating-card top-left float-1" style="background:rgba(18, 24, 34, 0.94); border:1px solid rgba(245, 158, 11, 0.35); box-shadow:0 12px 28px rgba(0,0,0,0.6);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:rgba(245, 158, 11, 0.2); color:#f59e0b; display:grid; place-items:center; font-size:1.05rem;">
+            <i class="fas fa-star"></i>
+          </div>
+          <div>
+            <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Guest Rating</div>
+            <strong style="display:block; font-size:0.95rem; color:#fff;">4.9 &starf; (1.2k+ Reviews)</strong>
+          </div>
         </div>
       </div>
 
-      <div class="hero-floating-card bottom-right">
-        <div>
-          <span style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Instant QR Order</span>
-          <strong style="display:block; font-size:0.95rem; margin-top:2px;">Order From Table</strong>
+      <!-- Floating 3D Badge 2 (Bottom-Right): Table QR -->
+      <div class="hero-floating-card bottom-right float-2" style="background:rgba(18, 24, 34, 0.94); border:1px solid rgba(34, 197, 94, 0.35); box-shadow:0 12px 28px rgba(0,0,0,0.6);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:rgba(34, 197, 94, 0.2); color:#22c55e; display:grid; place-items:center; font-size:1.05rem;">
+            <i class="fas fa-qrcode"></i>
+          </div>
+          <div>
+            <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Contactless</div>
+            <strong style="display:block; font-size:0.95rem; color:#fff;">Instant Table QR Order</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating 3D Badge 3 (Bottom-Left): 100% Arabica -->
+      <div class="hero-floating-card float-3 hide-mobile" style="position:absolute; bottom:18px; left:18px; background:rgba(18, 24, 34, 0.94); border:1px solid rgba(245, 158, 11, 0.35); box-shadow:0 12px 28px rgba(0,0,0,0.6);">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:50%; background:rgba(245, 158, 11, 0.2); color:#f59e0b; display:grid; place-items:center; font-size:1.05rem;">
+            <i class="fas fa-seedling"></i>
+          </div>
+          <div>
+            <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Origin Quality</div>
+            <strong style="display:block; font-size:0.95rem; color:#fff;">100% Arabica Beans</strong>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="info-grid">
-    <div class="feature-card">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-        <h3 style="margin:0; font-size:1.25rem; font-weight:800;">Featured Specialties</h3>
-        <a href="{{ url_for('menu') }}" class="muted" style="text-decoration:none; font-size:0.85rem; font-weight:600; color:var(--primary);">View all</a>
-      </div>
-      <div class="feature-list">
-        {% for item in featured %}
-        <div class="mini-product" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
-          <div>
-            <strong style="font-size:0.95rem; display:block;">{{ item.name }}</strong>
-            <span class="badge subtle" style="font-size:0.72rem; padding:2px 8px; margin-top:4px; display:inline-block;">{{ item.category_name }}</span>
-          </div>
-          <strong style="color:var(--primary); font-size:1.05rem;">{{ money(item.price) }}</strong>
+  <!-- 2. INTERACTIVE SIGNATURE DRINKS & HOUSE FAVORITES -->
+  <section style="margin-top:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+      <div>
+        <div style="display:inline-flex; align-items:center; gap:6px; color:var(--primary); font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">
+          <i class="fas fa-fire-flame-curved"></i> Fresh from the Barista
         </div>
-        {% endfor %}
+        <h2 style="margin:0; font-size:clamp(1.5rem, 3vw, 2.2rem); font-weight:800;">Featured House Specialties</h2>
+      </div>
+      <a href="{{ url_for('menu') }}" class="button secondary small" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        <span>Explore Full Menu</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+
+    <!-- Specialties Grid -->
+    <div class="menu-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:20px;">
+      {% for item in featured %}
+      <div class="home-product-card">
+        <div class="home-product-img-wrap">
+          <img src="{{ item.image_url or '/static/img/placeholder.svg' }}"
+               alt="{{ item.name }}"
+               class="home-product-img"
+               loading="lazy"
+               onerror="this.onerror=null; this.src='/static/img/placeholder.svg';" />
+          <span class="badge subtle" style="position:absolute; top:12px; left:12px; font-size:0.75rem; background:rgba(18, 24, 34, 0.85); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,0.15);">
+            {{ item.category_name }}
+          </span>
+          {% if item.is_featured %}
+          <span class="badge" style="position:absolute; top:12px; right:12px; font-size:0.72rem; background:rgba(245, 158, 11, 0.9); color:#1a0f07; font-weight:800;">
+            <i class="fas fa-award"></i> Chef's Pick
+          </span>
+          {% endif %}
+        </div>
+
+        <div style="padding:18px; display:flex; flex-direction:column; flex:1;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:6px;">
+            <h3 style="margin:0; font-size:1.1rem; font-weight:800; line-height:1.25;">{{ item.name }}</h3>
+            <span style="color:var(--primary); font-weight:800; font-size:1.15rem; white-space:nowrap;">{{ money(item.price) }}</span>
+          </div>
+
+          <p style="color:var(--muted); font-size:0.86rem; line-height:1.45; margin:0 0 16px; flex:1; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+            {{ item.description or 'Handcrafted artisan specialty prepared fresh with premium ingredients.' }}
+          </p>
+
+          <a href="{{ url_for('product_detail', product_id=item.id) }}" class="button small" style="width:100%; justify-content:center; text-decoration:none; min-height:38px; display:flex; align-items:center; gap:6px;">
+            <i class="fas fa-plus"></i> Order &amp; Customize
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 3. WHY GUESTS LOVE US — INTERACTIVE BENTO GRID -->
+  <section style="margin-top:20px;">
+    <div style="text-align:center; max-width:600px; margin:0 auto 28px;">
+      <div style="display:inline-flex; align-items:center; gap:6px; color:var(--primary); font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;">
+        <i class="fas fa-sparkles"></i> The Pheaktra Standard
+      </div>
+      <h2 style="margin:0 0 10px; font-size:clamp(1.6rem, 3.2vw, 2.4rem); font-weight:800;">Why Guests Love PHEAKTRA COFFEE</h2>
+      <p style="color:var(--muted); margin:0; font-size:1.02rem;">Crafted with passion, delivered with hospitality in every single cup.</p>
+    </div>
+
+    <div class="bento-grid">
+      <!-- Bento 1: 100% Arabica -->
+      <div class="bento-card">
+        <div class="bento-icon-box">
+          <i class="fas fa-seedling"></i>
+        </div>
+        <h3 style="margin:0 0 8px; font-size:1.2rem; font-weight:800;">100% Organic Arabica</h3>
+        <p style="color:var(--muted); font-size:0.92rem; line-height:1.55; margin:0;">
+          Direct-trade, ethically sourced coffee beans roasted in small batches to highlight natural chocolate &amp; caramel tasting notes.
+        </p>
+      </div>
+
+      <!-- Bento 2: QR Table Ordering -->
+      <div class="bento-card">
+        <div class="bento-icon-box" style="background:rgba(34, 197, 94, 0.15); color:#22c55e;">
+          <i class="fas fa-qrcode"></i>
+        </div>
+        <h3 style="margin:0 0 8px; font-size:1.2rem; font-weight:800;">Instant Table QR Order</h3>
+        <p style="color:var(--muted); font-size:0.92rem; line-height:1.55; margin:0;">
+          Scan the QR code at your table to browse the menu, customize ice &amp; sweetness, and order in seconds without waiting in line.
+        </p>
+      </div>
+
+      <!-- Bento 3: Bakery -->
+      <div class="bento-card">
+        <div class="bento-icon-box" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b;">
+          <i class="fas fa-bread-slice"></i>
+        </div>
+        <h3 style="margin:0 0 8px; font-size:1.2rem; font-weight:800;">Fresh House Bakery</h3>
+        <p style="color:var(--muted); font-size:0.92rem; line-height:1.55; margin:0;">
+          Oven-baked flaky French butter croissants, rich double-chocolate muffins, and fresh sandwiches crafted daily at 6:30 AM.
+        </p>
+      </div>
+
+      <!-- Bento 4: Relaxed Atmosphere & WiFi -->
+      <div class="bento-card">
+        <div class="bento-icon-box" style="background:rgba(59, 130, 246, 0.15); color:#3b82f6;">
+          <i class="fas fa-wifi"></i>
+        </div>
+        <h3 style="margin:0 0 8px; font-size:1.2rem; font-weight:800;">Cozy Work &amp; Chill Space</h3>
+        <p style="color:var(--muted); font-size:0.92rem; line-height:1.55; margin:0;">
+          High-speed guest Wi-Fi ({{ setting.wifi_ssid if setting and setting.wifi_ssid else 'Pheaktra_Coffee_5G' }}), power outlets, and acoustic ambiance for work or catching up.
+        </p>
       </div>
     </div>
+  </section>
 
-    <div class="feature-card">
-      <h3 style="margin:0 0 16px; font-size:1.25rem; font-weight:800;">Why Guests Love Us</h3>
-      <ul style="list-style:none; padding:0; margin:0; display:grid; gap:14px; font-size:0.95rem; color:var(--muted);">
-        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> 100% Organic, ethically sourced beans</li>
-        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> Instant table ordering via QR code</li>
-        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> Cozy atmosphere with high-speed Wi-Fi</li>
-        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> Daily house-made cakes and croissants</li>
-      </ul>
+  <!-- 4. GUEST REVIEWS & SOCIAL PROOF -->
+  <section style="margin-top:10px;">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div class="star-rating-gold" style="margin-bottom:6px;">
+        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+      </div>
+      <h3 style="margin:0; font-size:1.4rem; font-weight:800;">Loved by Local Coffee Lovers</h3>
     </div>
 
-    <div class="feature-card">
-      <h3 style="margin:0 0 16px; font-size:1.25rem; font-weight:800;">Store Hours &amp; Location</h3>
-      <ul style="list-style:none; padding:0; margin:0; display:grid; gap:14px; font-size:0.95rem; color:var(--muted);">
-        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Operating Hours</strong> Open 7 Days a week (7:30 AM - 9:30 PM)</li>
-        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Phone Number</strong> {{ setting.store_phone if setting and setting.store_phone else '(+885) 71 3030 308' }}</li>
-        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Free Guest Wi-Fi</strong> {{ setting.wifi_ssid if setting and setting.wifi_ssid else 'Pheaktra_Coffee_5G' }}</li>
-        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Address</strong> {{ setting.store_address if setting and setting.store_address else 'Duem Mean coffee Takhmau' }}</li>
-      </ul>
+    <div class="grid grid-3" style="gap:18px;">
+      <div class="review-quote-card">
+        <div class="star-rating-gold" style="margin-bottom:10px;">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
+        <p style="color:var(--text); font-size:0.94rem; line-height:1.55; margin:0 0 14px; font-style:italic;">
+          &ldquo;Best Caramel Macchiato in Takhmau! The table QR ordering makes it super quick to work while having coffee.&rdquo;
+        </p>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:32px; height:32px; border-radius:50%; background:var(--primary-soft); color:var(--primary); display:grid; place-items:center; font-weight:800; font-size:0.85rem;">
+            S
+          </div>
+          <div>
+            <strong style="font-size:0.88rem; display:block;">Sophea Chan</strong>
+            <small class="muted" style="font-size:0.75rem;">Verified Customer</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-quote-card">
+        <div class="star-rating-gold" style="margin-bottom:10px;">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
+        <p style="color:var(--text); font-size:0.94rem; line-height:1.55; margin:0 0 14px; font-style:italic;">
+          &ldquo;The Butter Croissant is always warm and flaky. Fast 5G Wi-Fi and the baristas are super welcoming every morning.&rdquo;
+        </p>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(34, 197, 94, 0.18); color:#22c55e; display:grid; place-items:center; font-weight:800; font-size:0.85rem;">
+            V
+          </div>
+          <div>
+            <strong style="font-size:0.88rem; display:block;">Vibol Roth</strong>
+            <small class="muted" style="font-size:0.75rem;">Frequent Guest</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-quote-card">
+        <div class="star-rating-gold" style="margin-bottom:10px;">
+          <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+        </div>
+        <p style="color:var(--text); font-size:0.94rem; line-height:1.55; margin:0 0 14px; font-style:italic;">
+          &ldquo;Their 16-hour Cold Brew Classic is unmatched. Smooth, rich, and never bitter. Highly recommended!&rdquo;
+        </p>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div style="width:32px; height:32px; border-radius:50%; background:rgba(59, 130, 246, 0.18); color:#3b82f6; display:grid; place-items:center; font-weight:800; font-size:0.85rem;">
+            D
+          </div>
+          <div>
+            <strong style="font-size:0.88rem; display:block;">Dara Meng</strong>
+            <small class="muted" style="font-size:0.75rem;">Coffee Enthusiast</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. CALL TO ACTION FOOTER BANNER -->
+  <section class="card" style="margin-top:10px; text-align:center; padding:44px 24px; background:linear-gradient(135deg, rgba(245, 158, 11, 0.18) 0%, rgba(18, 24, 34, 0.98) 100%); border:1px solid rgba(245, 158, 11, 0.35); position:relative; overflow:hidden;">
+    <div style="position:relative; z-index:2; max-width:600px; margin:0 auto;">
+      <h2 style="font-size:clamp(1.8rem, 3.5vw, 2.6rem); font-weight:800; margin:0 0 12px;">Ready for Your Daily Coffee Fix?</h2>
+      <p style="color:var(--text-secondary, #cbd5e1); font-size:1.08rem; line-height:1.6; margin:0 0 24px;">
+        Order ahead for quick pickup or scan at your table for direct seat delivery.
+      </p>
+      <div style="display:flex; justify-content:center; gap:14px; flex-wrap:wrap;">
+        <a href="{{ url_for('menu') }}" class="button btn-sheen-glow" style="padding:16px 36px; font-size:1.1rem; text-decoration:none;">
+          <i class="fas fa-mug-hot"></i> Order Online Now
+        </a>
+        <a href="{{ url_for('track_order') }}" class="button secondary" style="padding:16px 28px; font-size:1.05rem; text-decoration:none;">
+          <i class="fas fa-location-crosshairs"></i> Track Order Status
+        </a>
+      </div>
     </div>
   </section>
 </div>

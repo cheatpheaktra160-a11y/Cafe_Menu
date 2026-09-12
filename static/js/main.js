@@ -330,7 +330,7 @@ function openModal(product) {
   modalQty = 1;
   if (modalQtyEl) modalQtyEl.textContent = '1';
   if (modalTitleEl) modalTitleEl.textContent = product.name;
-  if (modalPriceEl) modalPriceEl.textContent = `${money(parseFloat(product.price))} &bull; ${product.stock} in stock`;
+  if (modalPriceEl) modalPriceEl.textContent = `${money(parseFloat(product.price))} • ${product.stock} in stock`;
 
   if (modalOptionsEl) {
     modalOptionsEl.innerHTML = '';
@@ -350,23 +350,13 @@ function openModal(product) {
   if (modalNoteEl) modalNoteEl.value = '';
 
   modalEl.hidden = false;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => modalEl.classList.add('is-open'));
-  });
+  modalEl.classList.add('is-open');
 }
 
 function closeModal() {
   if (!modalEl) return;
   modalEl.classList.remove('is-open');
-  modalEl.addEventListener(
-    'transitionend',
-    () => {
-      if (!modalEl.classList.contains('is-open')) {
-        modalEl.hidden = true;
-      }
-    },
-    { once: true }
-  );
+  modalEl.hidden = true;
   modalProduct = null;
 }
 
@@ -421,6 +411,9 @@ document.querySelectorAll('.add-product').forEach((button) => {
 });
 
 if (modalEl) {
+  if (modalEl.parentElement !== document.body) {
+    document.body.appendChild(modalEl);
+  }
   const cancelBtn = document.getElementById('modal-cancel');
   const addBtn = document.getElementById('modal-add');
   const minusBtn = document.getElementById('modal-qty-minus');
@@ -599,6 +592,9 @@ function setupPosQuickActions() {
 
   // Quick Customer Modal
   const qcModal = document.getElementById('quick-customer-modal');
+  if (qcModal && qcModal.parentElement !== document.body) {
+    document.body.appendChild(qcModal);
+  }
   const openQcBtn = document.getElementById('open-quick-customer');
   const closeQcBtn = document.getElementById('quick-cust-close');
   const cancelQcBtn = document.getElementById('qc-cancel');
@@ -607,16 +603,21 @@ function setupPosQuickActions() {
   if (openQcBtn && qcModal) {
     openQcBtn.addEventListener('click', () => {
       qcModal.hidden = false;
-      requestAnimationFrame(() => qcModal.classList.add('is-open'));
+      qcModal.classList.add('is-open');
     });
   }
   function closeQcModal() {
     if (!qcModal) return;
     qcModal.classList.remove('is-open');
-    qcModal.addEventListener('transitionend', () => { if (!qcModal.classList.contains('is-open')) qcModal.hidden = true; }, { once: true });
+    qcModal.hidden = true;
   }
   if (closeQcBtn) closeQcBtn.addEventListener('click', closeQcModal);
   if (cancelQcBtn) cancelQcBtn.addEventListener('click', closeQcModal);
+  if (qcModal) {
+    qcModal.addEventListener('click', (e) => {
+      if (e.target === qcModal) closeQcModal();
+    });
+  }
 
   if (qcForm) {
     qcForm.addEventListener('submit', async (e) => {
@@ -1003,6 +1004,56 @@ function setupLoginHelpers() {
   }
 }
 
+/* ---------------------------------------------------- Inventory Quick Actions */
+function setupInventoryLiveActions() {
+  const invSearch = document.getElementById('inv-search');
+  const filterBtns = document.querySelectorAll('.inv-filter-btn');
+  const rows = document.querySelectorAll('.inv-row');
+
+  let currentStatus = 'all';
+
+  function filterInventory() {
+    const q = invSearch ? invSearch.value.toLowerCase().trim() : '';
+    rows.forEach((row) => {
+      const name = row.dataset.name || '';
+      const category = row.dataset.category || '';
+      const status = row.dataset.status || 'ok';
+
+      const matchesSearch = !q || name.includes(q) || category.includes(q);
+      const matchesStatus = currentStatus === 'all' || status === currentStatus;
+
+      row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+    });
+  }
+
+  if (invSearch) {
+    invSearch.addEventListener('input', debounce(filterInventory, 100));
+  }
+
+  filterBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentStatus = btn.dataset.filter || 'all';
+      filterInventory();
+    });
+  });
+
+  // Stepper increment/decrement buttons
+  document.querySelectorAll('.btn-inv-step').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const delta = parseInt(btn.dataset.delta, 10) || 0;
+      const form = btn.closest('.inv-adjust-form');
+      if (!form) return;
+      const input = form.querySelector('.inv-stock-input');
+      if (!input) return;
+      const cur = parseInt(input.value, 10) || 0;
+      input.value = Math.max(0, cur + delta);
+      playUiChime(523.25, 659.25, 0.08);
+    });
+  });
+}
+
 /* ------------------------------------------------------------------- Boot */
 loadCart();
 setupCategoryFilter();
@@ -1012,6 +1063,7 @@ setupKeyboardShortcuts();
 setupLiveOrderTracking();
 setupMobileNav();
 setupLoginHelpers();
+setupInventoryLiveActions();
 initRippleEffect();
 initPageLoader();
 initCounterAnimation();
@@ -1020,5 +1072,6 @@ initSmoothTicker();
 
 cart = cart.filter((item) => !item.max_stock || item.quantity <= item.max_stock);
 renderCart();
+
 
 

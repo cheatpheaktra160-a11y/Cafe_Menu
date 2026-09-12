@@ -1,62 +1,150 @@
 {% extends 'layout.html' %}
 {% block content %}
 <div class="grid grid-4">
-  <div class="card accent">
-    <div class="stat-header"><span>Tracked Items</span><i class="fas fa-cubes"></i></div>
-    <h3>{{ stats.items }}</h3>
+  <div class="card accent stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-cubes" style="color:var(--primary); margin-right:6px;"></i> Tracked Items</span>
+      <span class="stat-icon"><i class="fas fa-boxes-stacked"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.total_items or stats['items'] }}" data-decimals="0">{{ stats.total_items or stats['items'] }}</div>
+      <div class="stat-footer">
+        <span>Active catalog items</span>
+        <span class="stat-pill">In stock</span>
+      </div>
+    </div>
   </div>
-  <div class="card accent-light">
-    <div class="stat-header"><span>Low Stock</span><i class="fas fa-triangle-exclamation"></i></div>
-    <h3>{{ stats.low }}</h3>
+
+  <div class="card accent-light stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-triangle-exclamation" style="color:var(--warning, #f59e0b); margin-right:6px;"></i> Low Stock</span>
+      <span class="stat-icon" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b;"><i class="fas fa-bell"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.low or 0 }}" data-decimals="0">{{ stats.low or 0 }}</div>
+      <div class="stat-footer">
+        <span>&le; {{ low_stock_threshold }} units left</span>
+        <span class="stat-pill" style="color:#f59e0b;">Reorder soon</span>
+      </div>
+    </div>
   </div>
-  <div class="card accent-dark">
-    <div class="stat-header"><span>Out of Stock</span><i class="fas fa-circle-xmark"></i></div>
-    <h3>{{ stats.out }}</h3>
+
+  <div class="card accent-dark stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-circle-xmark" style="color:var(--danger); margin-right:6px;"></i> Out of Stock</span>
+      <span class="stat-icon" style="background:var(--danger-soft); color:var(--danger);"><i class="fas fa-ban"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.out or 0 }}" data-decimals="0">{{ stats.out or 0 }}</div>
+      <div class="stat-footer">
+        <span>0 units remaining</span>
+        <span class="stat-pill" style="color:var(--danger);">Needs restock</span>
+      </div>
+    </div>
   </div>
-  <div class="card">
-    <div class="stat-header"><span>Total Inventory Value</span><i class="fas fa-vault"></i></div>
-    <h3 style="color:var(--primary);">{{ money(stats.value) }}</h3>
+
+  <div class="card stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-vault" style="color:var(--success); margin-right:6px;"></i> Total Inventory Value</span>
+      <span class="stat-icon" style="background:var(--success-soft); color:var(--success);"><i class="fas fa-dollar-sign"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.value or 0 }}" data-prefix="{{ currency_symbol }}" data-decimals="2">{{ money(stats.value or 0) }}</div>
+      <div class="stat-footer">
+        <span>Based on retail pricing</span>
+        <span class="stat-pill" style="color:var(--success);">Asset value</span>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="card mt-1">
-  <div class="table-header" style="margin-bottom:20px;">
+  <div class="table-header" style="margin-bottom:20px; flex-wrap:wrap; gap:16px;">
     <div>
-      <h3 style="margin:0; font-size:1.4rem;"><i class="fas fa-boxes-stacked" style="color:var(--primary);"></i> Inventory Stock Control</h3>
-      <p class="muted" style="margin:4px 0 0;">Items at {{ low_stock_threshold }} units or fewer trigger automatic low-stock warnings.</p>
+      <h3 style="margin:0; font-size:1.4rem; display:flex; align-items:center; gap:8px;">
+        <i class="fas fa-boxes-stacked" style="color:var(--primary);"></i> Inventory Stock Control
+      </h3>
+      <p class="muted" style="margin:4px 0 0; font-size:0.88rem;">
+        Items at {{ low_stock_threshold }} units or fewer trigger automatic alerts in POS and Dashboard.
+      </p>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <div class="search-input-wrap" style="min-width:220px;">
+        <i class="fas fa-search"></i>
+        <input type="text" id="inv-search" placeholder="Search inventory items..." />
+      </div>
+
+      <div class="inv-filter-chips" style="display:inline-flex; gap:6px; background:rgba(0,0,0,0.25); padding:4px; border-radius:var(--radius-md); border:1px solid var(--border);">
+        <button type="button" class="inv-filter-btn active" data-filter="all">All ({{ products | length }})</button>
+        <button type="button" class="inv-filter-btn" data-filter="low">Low ({{ stats.low }})</button>
+        <button type="button" class="inv-filter-btn" data-filter="out">Out ({{ stats.out }})</button>
+        <button type="button" class="inv-filter-btn" data-filter="ok">In Stock ({{ (products | length) - stats.low - stats.out }})</button>
+      </div>
     </div>
   </div>
 
   <div class="table-responsive">
-    <table>
-      <thead><tr><th>Product Name</th><th>Category</th><th>Unit Price</th><th>Stock Status</th><th style="text-align:right;">Update Quantity</th></tr></thead>
-      <tbody>
-        {% for product in products %}
+    <table class="inventory-table">
+      <thead>
         <tr>
+          <th>Product Name</th>
+          <th>Category</th>
+          <th>Unit Price</th>
+          <th>Stock Status</th>
+          <th style="text-align:right;">Quick Adjust &amp; Save</th>
+        </tr>
+      </thead>
+      <tbody id="inventory-tbody">
+        {% for product in products %}
+        {% set is_out = product.stock <= 0 %}
+        {% set is_low = (product.stock > 0 and product.stock <= low_stock_threshold) %}
+        <tr class="inv-row" 
+            data-name="{{ product.name | lower }}" 
+            data-category="{{ product.category_name | lower }}"
+            data-status="{% if is_out %}out{% elif is_low %}low{% else %}ok{% endif %}">
           <td>
             <div style="display:flex; align-items:center; gap:12px;">
-              <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" style="width:38px; height:38px; border-radius:var(--radius-sm); object-fit:cover;" />
-              <strong>{{ product.name }}</strong>
+              <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" style="width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border);" />
+              <div>
+                <strong style="font-size:0.95rem;">{{ product.name }}</strong>
+                {% if product.tags %}
+                <small class="muted" style="display:block; font-size:0.75rem;">{{ product.tags }}</small>
+                {% endif %}
+              </div>
             </div>
           </td>
           <td><span class="badge subtle">{{ product.category_name }}</span></td>
-          <td><strong>{{ money(product.price) }}</strong></td>
+          <td><strong style="color:var(--primary);">{{ money(product.price) }}</strong></td>
           <td>
-            <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}">
-              {% if product.stock <= 0 %}Out of stock{% elif product.stock <= low_stock_threshold %}Low Stock ({{ product.stock }} left){% else %}{{ product.stock }} in stock{% endif %}
+            <span class="badge {{ 'badge-out' if is_out else ('badge-low' if is_low else 'badge-ok') }}">
+              {% if is_out %}Out of stock{% elif is_low %}Low ({{ product.stock }} left){% else %}{{ product.stock }} in stock{% endif %}
             </span>
           </td>
           <td style="text-align:right;">
-            <form method="post" style="display:inline-flex; gap:8px; align-items:center; justify-content:flex-end;">
+            <form method="post" class="inv-adjust-form" style="display:inline-flex; gap:6px; align-items:center; justify-content:flex-end;">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
               <input type="hidden" name="product_id" value="{{ product.id }}" />
-              <input type="number" name="stock" min="0" value="{{ product.stock }}" required style="width:90px;" />
-              <button type="submit" class="button secondary small"><i class="fas fa-floppy-disk"></i> Save</button>
+              
+              <div class="inv-stepper" style="display:inline-flex; align-items:center; gap:2px; background:var(--surface-hover); border:1px solid var(--border); border-radius:var(--radius-sm); padding:2px;">
+                <button type="button" class="btn-inv-step" data-delta="-1" title="Decrease by 1" style="border:none; background:none; color:var(--text); padding:4px 8px; cursor:pointer; font-weight:700;"><i class="fas fa-minus" style="font-size:0.75rem;"></i></button>
+                <input type="number" name="stock" min="0" value="{{ product.stock }}" class="inv-stock-input" required style="width:60px; text-align:center; padding:4px; background:transparent; border:none; color:var(--text); font-weight:700;" />
+                <button type="button" class="btn-inv-step" data-delta="1" title="Increase by 1" style="border:none; background:none; color:var(--text); padding:4px 8px; cursor:pointer; font-weight:700;"><i class="fas fa-plus" style="font-size:0.75rem;"></i></button>
+              </div>
+
+              <div class="inv-quick-add" style="display:inline-flex; gap:2px;">
+                <button type="button" class="button secondary small btn-inv-step" data-delta="5" title="Add 5 units" style="padding:4px 8px; font-size:0.75rem;">+5</button>
+                <button type="button" class="button secondary small btn-inv-step" data-delta="10" title="Add 10 units" style="padding:4px 8px; font-size:0.75rem;">+10</button>
+              </div>
+
+              <button type="submit" class="button small" title="Save Stock Level" style="padding:6px 12px;">
+                <i class="fas fa-check"></i> Save
+              </button>
             </form>
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="5" class="muted" style="text-align:center;">No products found in inventory.</td></tr>
+        <tr><td colspan="5" class="muted" style="text-align:center; padding:32px;">No products found in inventory.</td></tr>
         {% endfor %}
       </tbody>
     </table>
