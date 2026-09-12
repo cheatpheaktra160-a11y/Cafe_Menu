@@ -1,0 +1,111 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="public-landing">
+  {% if session_table_number %}
+  <div class="alert success" style="margin-bottom:0;">
+    <i class="fas fa-qrcode"></i>
+    <span>You are ordering for <strong>Table {{ session_table_number }}</strong>. Items will be served to your table!</span>
+  </div>
+  {% endif %}
+
+  <div class="section-header split">
+    <div>
+      <p class="eyebrow">Handcrafted Drinks &amp; Treats</p>
+      <h2 style="font-size:2rem; font-weight:800; margin:4px 0 0;">Explore Our Menu</h2>
+    </div>
+    <a href="{{ url_for('cart') }}" class="button secondary">
+      <i class="fas fa-shopping-bag"></i> View Cart {% if cart_count > 0 %}<span class="cart-badge">{{ cart_count }}</span>{% endif %}
+    </a>
+  </div>
+
+  <form method="get" action="{{ url_for('menu') }}" class="menu-toolbar card" style="padding:16px;">
+    <div class="search-input-wrap" style="flex:1; min-width:220px;">
+      <i class="fas fa-search"></i>
+      <input type="text" name="search" value="{{ search }}" placeholder="Search coffee, tea, pastries..." />
+    </div>
+
+    <div class="category-list" style="margin:0;">
+      <a href="{{ url_for('menu', search=search) }}" class="category-button {% if not selected_category %}active{% endif %}">
+        All
+      </a>
+      {% for category in categories %}
+      <a href="{{ url_for('menu', category_id=category.id, search=search) }}" 
+         class="category-button {% if category.id == selected_category %}active{% endif %}">
+        {{ category.name }}
+      </a>
+      {% endfor %}
+    </div>
+
+    {% if search or selected_category %}
+    <a href="{{ url_for('menu') }}" class="button secondary small" title="Clear Filters">
+      <i class="fas fa-times"></i> Clear
+    </a>
+    {% endif %}
+  </form>
+
+  <div class="menu-grid">
+    {% for product in menu_items %}
+    <article class="menu-card">
+      <div class="menu-card-img" style="background-image: url('{{ product.image_url or '/static/img/placeholder.svg' }}');"></div>
+      <div class="menu-card-body">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span class="badge subtle">{{ product.category_name }}</span>
+          {% if product.stock <= 0 %}
+          <span class="badge danger">Out of stock</span>
+          {% else %}
+          <span class="badge badge-ok">{{ product.stock }} available</span>
+          {% endif %}
+        </div>
+        
+        <h3><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.name }}</a></h3>
+        <p>{{ product.description or 'Handcrafted with fresh artisan ingredients.' }}</p>
+        
+        {% if product.tags %}
+        <div class="product-tags">
+          {% for tag in product.tags.split(',') if tag.strip() %}
+          <span class="product-tag">{{ tag.strip() }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card-actions">
+          <strong style="font-size:1.3rem; color:var(--primary);">{{ money(product.price) }}</strong>
+          <div style="margin-left:auto; display:flex; gap:8px;">
+            <a href="{{ url_for('product_detail', product_id=product.id) }}" class="button secondary small">
+              Customize
+            </a>
+            <form method="post" action="{{ url_for('menu') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="product_id" value="{{ product.id }}" />
+              <input type="hidden" name="quantity" value="1" />
+              <button type="submit" class="button small" {% if product.stock <= 0 %}disabled{% endif %}>
+                <i class="fas fa-plus"></i> Add
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </article>
+    {% else %}
+    <div class="card" style="grid-column: 1 / -1; text-align:center; padding:48px;">
+      <i class="fas fa-mug-hot" style="font-size:3rem; color:var(--muted); margin-bottom:16px;"></i>
+      <h3>No items found</h3>
+      <p class="muted">Try searching for something else or browse all categories.</p>
+      <a href="{{ url_for('menu') }}" class="button secondary mt-1">Show All Menu</a>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if cart_count > 0 %}
+  <div class="customer-floating-cart-bar no-print">
+    <div class="customer-cart-info">
+      <span class="cart-badge" style="position:static; transform:none; display:inline-flex;">{{ cart_count }}</span>
+      <span><strong>{{ cart_count }} item{% if cart_count > 1 %}s{% endif %} in cart</strong></span>
+    </div>
+    <a href="{{ url_for('cart') }}" class="button btn-sheen small">
+      <span>View Cart &amp; Pay</span> <i class="fas fa-arrow-right"></i>
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

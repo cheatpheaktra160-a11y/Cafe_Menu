@@ -1,0 +1,114 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="public-landing">
+  <div class="section-header split">
+    <div>
+      <p class="eyebrow"><i class="fas fa-satellite-dish" style="color:var(--primary);"></i> Live Order Status</p>
+      <h2 style="font-size:2rem; font-weight:800; margin:4px 0 0;">Track Your Order</h2>
+    </div>
+    <a href="{{ url_for('menu') }}" class="button secondary">
+      <i class="fas fa-mug-hot"></i> Order More
+    </a>
+  </div>
+
+  <form method="post" action="{{ url_for('track_order') }}" class="card" style="display:flex; gap:12px; padding:18px; margin-bottom:24px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <div class="search-input-wrap" style="flex:1;">
+      <i class="fas fa-search"></i>
+      <input type="text" name="search" value="{{ search }}" placeholder="Enter order number (e.g. CAF-20260908-001) or customer name..." required />
+    </div>
+    <button type="submit" class="button"><i class="fas fa-magnifying-glass"></i> Track</button>
+  </form>
+
+  {% if order %}
+  <div class="card" style="display:grid; gap:24px; padding:28px; position:relative; overflow:hidden;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; border-bottom:1px solid var(--border); padding-bottom:18px;">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <small style="color:var(--muted); text-transform:uppercase; font-weight:700; font-size:0.75rem;">Order Number</small>
+          <span class="live-dot" title="Live status tracking active"></span>
+        </div>
+        <h3 style="margin:4px 0 0; font-size:1.6rem; font-weight:800; color:var(--primary);">
+          {{ order.order_number or ('CAF-' ~ order.id) }}
+        </h3>
+        <p class="muted" style="margin:4px 0 0; font-size:0.88rem;">
+          Placed on {{ order.created_at }} &bull; Customer: <strong>{{ order.customer_name or 'Guest' }}</strong>
+        </p>
+      </div>
+
+      <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+        <span class="badge {% if order.status == 'Voided' or order.order_status == 'Cancelled' %}badge-voided{% elif order.order_status in ('Ready', 'Completed') %}badge-ok{% else %}badge-paid{% endif %}" style="font-size:1.05rem; padding:8px 18px;">
+          <i class="fas {% if order.order_status == 'Completed' %}fa-check-circle{% elif order.order_status == 'Ready' %}fa-bell fa-shake{% elif order.order_status == 'Preparing' %}fa-fire{% else %}fa-clock{% endif %}"></i>
+          {{ order.order_status or order.status }}
+        </span>
+        <small class="muted" style="font-size:0.78rem;">Live auto-updating every 4s</small>
+      </div>
+    </div>
+
+    <!-- Service location banner -->
+    {% if order.table_number %}
+    <div class="alert success" style="margin:0;">
+      <i class="fas fa-chair" style="font-size:1.2rem;"></i>
+      <div>
+        <strong>Dine-in Service (Table {{ order.table_number }})</strong>
+        <p style="margin:2px 0 0; font-size:0.85rem;">Sit back and relax! Our team will serve your handcrafted items directly to Table {{ order.table_number }}.</p>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert info" style="margin:0;">
+      <i class="fas fa-bag-shopping" style="font-size:1.2rem;"></i>
+      <div>
+        <strong>Takeaway Order (Pickup Bar)</strong>
+        <p style="margin:2px 0 0; font-size:0.85rem;">Please keep this page open. When your status changes to <strong>Ready</strong>, collect your drinks at the pickup counter.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Progress status line -->
+    <div class="status-line">
+      {% set statuses = ['Pending', 'Preparing', 'Ready', 'Completed'] %}
+      {% set current_st = order.order_status or order.status %}
+      {% for step in statuses %}
+      <div class="status-step {% if current_st == step or (current_st in statuses and statuses.index(current_st) >= loop.index0) %}active{% endif %}">
+        <i class="fas {% if step == 'Pending' %}fa-clock{% elif step == 'Preparing' %}fa-fire-burner{% elif step == 'Ready' %}fa-bell{% else %}fa-circle-check{% endif %}" style="margin-right:6px;"></i>
+        <span>{{ step }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div>
+      <h4 style="margin:0 0 14px; font-weight:700; color:var(--muted); font-size:0.9rem; text-transform:uppercase;">
+        <i class="fas fa-mug-saucer" style="color:var(--primary); margin-right:6px;"></i> Order Items
+      </h4>
+      <div style="display:grid; gap:10px;">
+        {% for item in items %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-radius:var(--radius-md); background:rgba(11,15,23,0.5); border:1px solid var(--border);">
+          <div>
+            <strong style="font-size:1rem;">{{ item.quantity }}× {{ item.product_name }}</strong>
+            {% if item.options %}
+            <p class="muted" style="margin:4px 0 0; font-size:0.82rem;">
+              {{ item.options.replace('{"options": "', '').replace('"}', '') }}
+            </p>
+            {% endif %}
+          </div>
+          <strong style="color:var(--primary); font-size:1.05rem;">{{ money(item.unit_price * item.quantity) }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:18px; font-size:1.1rem;">
+      <span class="muted">Total Order Amount</span>
+      <strong style="font-size:1.3rem; color:var(--primary);">{{ money(order.total) }}</strong>
+    </div>
+  </div>
+  {% elif search %}
+  <div class="card" style="text-align:center; padding:56px 20px;">
+    <i class="fas fa-circle-question" style="font-size:3.5rem; color:var(--muted); margin-bottom:16px;"></i>
+    <h3 style="margin:0;">No order found</h3>
+    <p class="muted" style="margin:8px 0 20px;">We couldn't find an order matching "<strong>{{ search }}</strong>". Please verify your order number or phone.</p>
+    <a href="{{ url_for('menu') }}" class="button"><i class="fas fa-mug-hot"></i> Browse Menu</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

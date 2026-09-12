@@ -1,0 +1,333 @@
+{% extends 'layout.html' %}
+{% block content %}
+<!-- Quick Actions Strip -->
+<div class="quick-actions-strip">
+  <a href="{{ url_for('pos') }}" class="quick-action-btn primary-action">
+    <i class="fas fa-cash-register"></i> New POS Order
+  </a>
+  <a href="{{ url_for('kds') }}" class="quick-action-btn">
+    <i class="fas fa-utensils"></i> Kitchen KDS
+    {% if active_kitchen_count > 0 %}
+    <span class="badge badge-low" style="padding:1px 7px; font-size:0.75rem;">{{ active_kitchen_count }}</span>
+    {% endif %}
+  </a>
+  {% if is_admin %}
+  <a href="{{ url_for('z_report') }}" class="quick-action-btn">
+    <i class="fas fa-file-invoice-dollar"></i> Daily Z-Report
+  </a>
+  <a href="{{ url_for('tables') }}" class="quick-action-btn">
+    <i class="fas fa-table-cells"></i> Tables &amp; QR
+  </a>
+  <a href="{{ url_for('expenses') }}" class="quick-action-btn">
+    <i class="fas fa-wallet"></i> Add Expense
+  </a>
+  <a href="{{ url_for('reports') }}" class="quick-action-btn">
+    <i class="fas fa-chart-line"></i> Full Reports
+  </a>
+  {% endif %}
+</div>
+
+<!-- Key Stat Cards -->
+<div class="grid grid-4">
+  <div class="card accent stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-coins" style="color:var(--primary); margin-right:6px;"></i> Today's Revenue</span>
+      <span class="stat-icon"><i class="fas fa-dollar-sign"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.revenue or 0 }}" data-prefix="{{ currency_symbol }}" data-decimals="2">{{ money(stats.revenue or 0) }}</div>
+      <div class="stat-footer">
+        <span>Discounts</span>
+        <span class="stat-pill">{{ money(stats.discounts or 0) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card accent-light stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-receipt" style="color:var(--info); margin-right:6px;"></i> Orders Today</span>
+      <span class="stat-icon" style="background:var(--info-soft); color:var(--info);"><i class="fas fa-basket-shopping"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ stats.order_count or 0 }}" data-decimals="0">{{ stats.order_count or 0 }}</div>
+      <div class="stat-footer">
+        <span>Avg per order</span>
+        <span class="stat-pill">{{ money((stats.revenue or 0) / stats.order_count) if stats.order_count and stats.order_count > 0 else money(0) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card accent-dark stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-wallet" style="color:var(--danger); margin-right:6px;"></i> Today's Expenses</span>
+      <span class="stat-icon" style="background:var(--danger-soft); color:var(--danger);"><i class="fas fa-arrow-trend-down"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ expense_total or 0 }}" data-prefix="{{ currency_symbol }}" data-decimals="2">{{ money(expense_total or 0) }}</div>
+      <div class="stat-footer">
+        <span>Net earnings</span>
+        <span class="stat-pill" style="color:{% if (stats.revenue or 0) - (expense_total or 0) >= 0 %}var(--success){% else %}var(--danger){% endif %};">
+          {{ money((stats.revenue or 0) - (expense_total or 0)) }}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card stagger-card">
+    <div class="stat-header">
+      <span style="font-weight:700; color:var(--text);"><i class="fas fa-table-cells" style="color:var(--success); margin-right:6px;"></i> Active Tables</span>
+      <span class="stat-icon" style="background:var(--success-soft); color:var(--success);"><i class="fas fa-chair"></i></span>
+    </div>
+    <div class="stat-body">
+      <div class="stat-value stat-counter" data-target="{{ active_tables_count or 0 }}" data-decimals="0">{{ active_tables_count or 0 }}</div>
+      <div class="stat-footer">
+        <span>In-house dining</span>
+        <span class="stat-pill">{{ active_tables_count or 0 }} serving</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Analytics Charts -->
+<div class="grid grid-2 mt-1">
+  <div class="card stagger-card" style="padding:22px;">
+    <div class="table-header" style="margin-bottom:16px;">
+      <h3 style="margin:0; font-size:1.15rem;"><i class="fas fa-clock" style="color:var(--primary); margin-right:6px;"></i> Peak Rush Hours (Today)</h3>
+      <span class="badge subtle" style="font-size:0.75rem;">Hourly Sales</span>
+    </div>
+    <div style="height:230px; position:relative;">
+      <canvas id="hourlyChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card stagger-card" style="padding:22px;">
+    <div class="table-header" style="margin-bottom:16px;">
+      <h3 style="margin:0; font-size:1.15rem;"><i class="fas fa-chart-line" style="color:var(--accent); margin-right:6px;"></i> 7-Day Revenue vs Expenses</h3>
+      <span class="badge subtle" style="font-size:0.75rem;">Daily Trend</span>
+    </div>
+    <div style="height:230px; position:relative;">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Orders and Product Performance -->
+<div class="grid grid-2 mt-1">
+  <div class="card">
+    <div class="table-header" style="margin-bottom:16px;">
+      <h3 style="margin:0; font-size:1.15rem;"><i class="fas fa-receipt" style="color:var(--primary); margin-right:6px;"></i> Recent Orders</h3>
+      <a href="{{ url_for('orders') }}" class="button secondary small">View All Orders</a>
+    </div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Time</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td><strong style="white-space:nowrap;">{{ order.order_number or ('#' ~ order.id) }}</strong></td>
+            <td>{{ order.customer_name or 'Walk-in' }}</td>
+            <td><strong>{{ money(order.total) }}</strong></td>
+            <td>
+              <span class="badge {{ 'badge-voided' if order.status == 'Voided' else ('badge-ok' if order.order_status == 'Completed' else 'badge-low') }}">
+                {{ order.order_status or order.status }}
+              </span>
+            </td>
+            <td><small class="muted" style="white-space:nowrap;">{{ order.created_at[11:16] if order.created_at and ' ' in order.created_at else (order.created_at or '—') }}</small></td>
+            <td>
+              <a href="{{ url_for('receipt', order_id=order.id) }}" class="button secondary small" style="padding:4px 10px; font-size:0.75rem;" title="View Receipt">
+                <i class="fas fa-file-invoice"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="muted" style="text-align:center; padding:28px 14px;">No orders recorded today yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div style="display:grid; gap:24px;">
+    <div class="card">
+      <div class="table-header" style="margin-bottom:16px;">
+        <h3 style="margin:0; font-size:1.15rem;"><i class="fas fa-fire" style="color:#f59e0b; margin-right:6px;"></i> Top Sellers (30 Days)</h3>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead><tr><th>Rank</th><th>Product</th><th>Qty Sold</th><th>Revenue</th></tr></thead>
+          <tbody>
+            {% for product in top_products %}
+            <tr>
+              <td><span class="badge subtle" style="font-weight:800; color:var(--primary);">#{{ loop.index }}</span></td>
+              <td><strong>{{ product.name }}</strong></td>
+              <td><span class="badge subtle">{{ product.qty }} sold</span></td>
+              <td><strong style="color:var(--primary);">{{ money(product.revenue) }}</strong></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="muted" style="text-align:center; padding:24px 14px;">No sales recorded yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-header" style="margin-bottom:12px;">
+        <h3 style="margin:0; font-size:1.15rem;"><i class="fas fa-triangle-exclamation" style="color:var(--danger); margin-right:6px;"></i> Low Stock Alerts</h3>
+        {% if is_admin %}<a href="{{ url_for('inventory') }}" class="button secondary small">Manage Stock</a>{% endif %}
+      </div>
+      {% if low_stock %}
+      <div style="display:grid; gap:8px;">
+        {% for product in low_stock %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-radius:var(--radius-md); background:rgba(11,15,23,0.6); border:1px solid var(--border);">
+          <strong>{{ product.name }}</strong>
+          <span class="badge {{ 'badge-out' if product.stock <= 0 else 'badge-low' }}">
+            {{ 'Out of stock' if product.stock <= 0 else (product.stock ~ ' left') }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted" style="margin:0; padding:12px 0;">All inventory items are well stocked.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Render Dashboard Charts
+  document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch('/api/reports/chart-data');
+      if (!res.ok) return;
+      const data = await res.json();
+      const curr = document.body.dataset.currency || '$';
+
+      // Hourly Rush Chart
+      const ctxHourly = document.getElementById('hourlyChart');
+      if (ctxHourly && window.Chart) {
+        new Chart(ctxHourly, {
+          type: 'bar',
+          data: {
+            labels: data.hourly.labels,
+            datasets: [{
+              label: 'Orders Count',
+              data: data.hourly.counts,
+              backgroundColor: 'rgba(245, 158, 11, 0.8)',
+              hoverBackgroundColor: '#fbbf24',
+              borderRadius: 6,
+              borderWidth: 0,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#f8fafc',
+                bodyColor: '#fbbf24',
+                borderColor: 'rgba(245, 158, 11, 0.3)',
+                borderWidth: 1,
+                padding: 10,
+                displayColors: false,
+                callbacks: {
+                  label: (ctx) => `${ctx.raw} order(s)`
+                }
+              }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#94a3b8', font: { size: 11 } } },
+              y: {
+                min: 0,
+                suggestedMax: 5,
+                grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                ticks: { color: '#94a3b8', precision: 0, font: { size: 11 } }
+              }
+            }
+          }
+        });
+      }
+
+      // Trend Chart
+      const ctxTrend = document.getElementById('trendChart');
+      if (ctxTrend && window.Chart) {
+        new Chart(ctxTrend, {
+          type: 'line',
+          data: {
+            labels: data.trend.labels,
+            datasets: [
+              {
+                label: 'Sales',
+                data: data.trend.sales,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                tension: 0.35,
+                fill: true,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#10b981',
+              },
+              {
+                label: 'Expenses',
+                data: data.trend.expenses,
+                borderColor: '#ef4444',
+                backgroundColor: 'transparent',
+                borderDash: [5, 5],
+                tension: 0.35,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: '#ef4444',
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: { color: '#f8fafc', font: { size: 12, weight: '600' }, usePointStyle: true, boxWidth: 8 }
+              },
+              tooltip: {
+                backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                titleColor: '#f8fafc',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                padding: 10,
+                callbacks: {
+                  label: (ctx) => `${ctx.dataset.label}: ${curr}${parseFloat(ctx.raw || 0).toFixed(2)}`
+                }
+              }
+            },
+            scales: {
+              x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#94a3b8' } },
+              y: {
+                min: 0,
+                suggestedMax: 20,
+                grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                ticks: {
+                  color: '#94a3b8',
+                  callback: (val) => `${curr}${val}`
+                }
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Charts load error', e);
+    }
+  });
+</script>
+{% endblock %}

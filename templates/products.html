@@ -1,0 +1,211 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="grid grid-2">
+  <div style="display:grid; gap:24px;">
+    <div class="card">
+      <div class="table-header" style="margin-bottom:16px;">
+        <h3><i class="fas fa-mug-hot" style="color:var(--primary);"></i> Product Catalog</h3>
+        <span class="muted">{{ products | length }} Products Total</span>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead><tr><th>Item</th><th>Category</th><th>Price</th><th>Stock</th><th style="text-align:right;">Actions</th></tr></thead>
+          <tbody>
+            {% for product in products %}
+            <tr>
+              <td>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" style="width:44px; height:44px; border-radius:var(--radius-sm); object-fit:cover;" />
+                  <div>
+                    <strong>{{ product.name }}</strong>
+                    {% if product.is_featured %}
+                    <span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.7rem; padding:1px 6px; margin-left:4px;"><i class="fas fa-star"></i> Top</span>
+                    {% endif %}
+                    <small class="muted" style="display:block; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ product.description }}</small>
+                  </div>
+                </div>
+              </td>
+              <td><span class="badge subtle">{{ product.category_name }}</span></td>
+              <td><strong style="color:var(--primary);">{{ money(product.price) }}</strong></td>
+              <td>
+                <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}">
+                  {{ product.stock }}
+                </span>
+              </td>
+              <td style="text-align:right;">
+                <div style="display:flex; gap:6px; justify-content:flex-end;">
+                  <a href="{{ url_for('products', edit=product.id) }}" class="button secondary small"><i class="fas fa-pen-to-square"></i></a>
+                  <form method="post" onsubmit="return confirm('Delete {{ product.name }}?');" style="display:inline-block;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="action" value="delete_product" />
+                    <input type="hidden" name="product_id" value="{{ product.id }}" />
+                    <button type="submit" class="button danger small"><i class="fas fa-trash-alt"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="muted" style="text-align:center;">No products in catalog.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="table-header" style="margin-bottom:16px;">
+        <h3><i class="fas fa-tags" style="color:var(--primary);"></i> Categories</h3>
+      </div>
+      <div class="table-responsive">
+        <table>
+          <thead><tr><th>Category Name</th><th>Products Count</th><th style="text-align:right;">Action</th></tr></thead>
+          <tbody>
+            {% for category in categories %}
+            <tr>
+              <td><strong>{{ category.name }}</strong></td>
+              <td><span class="badge subtle">{{ category.product_count }} products</span></td>
+              <td style="text-align:right;">
+                {% if category.product_count == 0 %}
+                <form method="post" onsubmit="return confirm('Delete category {{ category.name }}?');" style="display:inline-block;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="action" value="delete_category" />
+                  <input type="hidden" name="category_id" value="{{ category.id }}" />
+                  <button type="submit" class="button danger small"><i class="fas fa-trash-alt"></i> Delete</button>
+                </form>
+                {% else %}
+                <small class="muted">In use</small>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid; gap:24px;">
+    <div class="card">
+      <h3><i class="fas fa-folder-plus" style="color:var(--primary);"></i> Add New Category</h3>
+      <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="add_category" />
+        <label>Category Name
+          <input type="text" name="category_name" placeholder="e.g. Cold Brew, Pastries, Desserts" required />
+        </label>
+        <button class="button"><i class="fas fa-plus"></i> Save Category</button>
+      </form>
+    </div>
+
+    {% if edit_product %}
+    <div class="card">
+      <h3><i class="fas fa-pen-to-square" style="color:var(--primary);"></i> Edit Product #{{ edit_product.id }}</h3>
+      <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="update_product" />
+        <input type="hidden" name="product_id" value="{{ edit_product.id }}" />
+
+        <label>Product Name *
+          <input type="text" name="product_name" value="{{ edit_product.name }}" required />
+        </label>
+
+        <div class="grid grid-2">
+          <label>Category *
+            <select name="product_category" required>
+              {% for category in categories %}
+              <option value="{{ category.id }}" {% if category.id == edit_product.category_id %}selected{% endif %}>{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label>Price ({{ currency_symbol }}) *
+            <input type="number" step="0.01" min="0.01" name="product_price" value="{{ edit_product.price }}" required />
+          </label>
+        </div>
+
+        <div class="grid grid-2">
+          <label>Initial Stock *
+            <input type="number" min="0" name="product_stock" value="{{ edit_product.stock }}" required />
+          </label>
+
+          <label style="display:flex; align-items:center; gap:8px; margin-top:24px; cursor:pointer;">
+            <input type="checkbox" name="is_featured" value="1" {% if edit_product.is_featured %}checked{% endif %} style="width:18px; height:18px;" />
+            <strong>Feature on Homepage / Menu Top</strong>
+          </label>
+        </div>
+
+        <label>Description
+          <textarea name="product_description" rows="2">{{ edit_product.description }}</textarea>
+        </label>
+
+        <label>Image URL (Unsplash or static path)
+          <input type="text" name="product_image" value="{{ edit_product.image_url }}" placeholder="https://images.unsplash.com/..." />
+        </label>
+
+        <label>Customization Options / Tags (comma separated)
+          <input type="text" name="product_tags" value="{{ edit_product.tags }}" placeholder="Ice, Sugar, Extra shot, Oat milk" />
+        </label>
+
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button type="submit" class="button"><i class="fas fa-save"></i> Save Changes</button>
+          <a href="{{ url_for('products') }}" class="button secondary">Cancel Edit</a>
+        </div>
+      </form>
+    </div>
+    {% else %}
+    <div class="card">
+      <h3><i class="fas fa-plus-circle" style="color:var(--primary);"></i> Add New Product</h3>
+      <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="add_product" />
+
+        <label>Product Name *
+          <input type="text" name="product_name" placeholder="e.g. Vanilla Cold Brew" required />
+        </label>
+
+        <div class="grid grid-2">
+          <label>Category *
+            <select name="product_category" required>
+              <option value="">Select category</option>
+              {% for category in categories %}
+              <option value="{{ category.id }}">{{ category.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+
+          <label>Price ({{ currency_symbol }}) *
+            <input type="number" step="0.01" min="0.01" name="product_price" placeholder="4.50" required />
+          </label>
+        </div>
+
+        <div class="grid grid-2">
+          <label>Initial Stock *
+            <input type="number" min="0" name="product_stock" placeholder="25" required />
+          </label>
+
+          <label style="display:flex; align-items:center; gap:8px; margin-top:24px; cursor:pointer;">
+            <input type="checkbox" name="is_featured" value="1" style="width:18px; height:18px;" />
+            <strong>Feature on Homepage / Menu Top</strong>
+          </label>
+        </div>
+
+        <label>Description
+          <textarea name="product_description" rows="2" placeholder="Brief product description..."></textarea>
+        </label>
+
+        <label>Image URL (Unsplash or static path)
+          <input type="text" name="product_image" placeholder="https://images.unsplash.com/..." />
+        </label>
+
+        <label>Customization Options / Tags (comma separated)
+          <input type="text" name="product_tags" placeholder="Ice, Sugar, Extra shot, Oat milk" />
+        </label>
+
+        <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-plus"></i> Save Product</button>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

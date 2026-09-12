@@ -1,0 +1,65 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="grid grid-4">
+  <div class="card accent">
+    <div class="stat-header"><span>Tracked Items</span><i class="fas fa-cubes"></i></div>
+    <h3>{{ stats.items }}</h3>
+  </div>
+  <div class="card accent-light">
+    <div class="stat-header"><span>Low Stock</span><i class="fas fa-triangle-exclamation"></i></div>
+    <h3>{{ stats.low }}</h3>
+  </div>
+  <div class="card accent-dark">
+    <div class="stat-header"><span>Out of Stock</span><i class="fas fa-circle-xmark"></i></div>
+    <h3>{{ stats.out }}</h3>
+  </div>
+  <div class="card">
+    <div class="stat-header"><span>Total Inventory Value</span><i class="fas fa-vault"></i></div>
+    <h3 style="color:var(--primary);">{{ money(stats.value) }}</h3>
+  </div>
+</div>
+
+<div class="card mt-1">
+  <div class="table-header" style="margin-bottom:20px;">
+    <div>
+      <h3 style="margin:0; font-size:1.4rem;"><i class="fas fa-boxes-stacked" style="color:var(--primary);"></i> Inventory Stock Control</h3>
+      <p class="muted" style="margin:4px 0 0;">Items at {{ low_stock_threshold }} units or fewer trigger automatic low-stock warnings.</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead><tr><th>Product Name</th><th>Category</th><th>Unit Price</th><th>Stock Status</th><th style="text-align:right;">Update Quantity</th></tr></thead>
+      <tbody>
+        {% for product in products %}
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" style="width:38px; height:38px; border-radius:var(--radius-sm); object-fit:cover;" />
+              <strong>{{ product.name }}</strong>
+            </div>
+          </td>
+          <td><span class="badge subtle">{{ product.category_name }}</span></td>
+          <td><strong>{{ money(product.price) }}</strong></td>
+          <td>
+            <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}">
+              {% if product.stock <= 0 %}Out of stock{% elif product.stock <= low_stock_threshold %}Low Stock ({{ product.stock }} left){% else %}{{ product.stock }} in stock{% endif %}
+            </span>
+          </td>
+          <td style="text-align:right;">
+            <form method="post" style="display:inline-flex; gap:8px; align-items:center; justify-content:flex-end;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <input type="hidden" name="product_id" value="{{ product.id }}" />
+              <input type="number" name="stock" min="0" value="{{ product.stock }}" required style="width:90px;" />
+              <button type="submit" class="button secondary small"><i class="fas fa-floppy-disk"></i> Save</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="muted" style="text-align:center;">No products found in inventory.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

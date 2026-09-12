@@ -1,0 +1,95 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="grid grid-2">
+  <div class="card">
+    <h3><i class="fas fa-sliders" style="color:var(--primary);"></i> Store &amp; Operational Settings</h3>
+    {% if is_admin %}
+    <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="store_settings" />
+
+      <label>Store Name *
+        <input type="text" name="store_name" value="{{ setting.store_name if setting else '' }}" required />
+      </label>
+
+      <label>Brand / Logo Title
+        <input type="text" name="brand" value="{{ setting.brand if setting else '' }}" />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Currency Code (USD, EUR, GBP, KHR, THB...)
+          <input type="text" name="currency" value="{{ setting.currency if setting else 'USD' }}" maxlength="4" />
+        </label>
+
+        <label>Tax Rate (%)
+          <input type="number" step="0.1" min="0" max="50" name="tax_rate" value="{{ setting.tax_rate if setting else '0.0' }}" />
+        </label>
+      </div>
+
+      <div class="grid grid-2">
+        <label>Store Phone Number
+          <input type="text" name="store_phone" value="{{ setting.store_phone if setting else '(+885) 71 3030 308' }}" />
+        </label>
+
+        <label>Store Timezone
+          <input type="text" name="timezone" value="{{ setting.timezone if setting else 'UTC' }}" />
+        </label>
+      </div>
+
+      <label>Physical Address (Appears on Receipts &amp; Site)
+        <input type="text" name="store_address" value="{{ setting.store_address if setting else 'Duem Mean coffee Takhmau' }}" />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Guest Wi-Fi Network Name
+          <input type="text" name="wifi_ssid" value="{{ setting.wifi_ssid if setting else 'Pheaktra_Coffee_5G' }}" />
+        </label>
+
+        <label>Guest Wi-Fi Password
+          <input type="text" name="wifi_password" value="{{ setting.wifi_password if setting else 'coffee2026' }}" />
+        </label>
+      </div>
+
+      <label>Receipt Footer Note
+        <input type="text" name="receipt_footer" value="{{ setting.receipt_footer if setting else 'Thank you for visiting! Savor every sip.' }}" />
+      </label>
+
+      <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-save"></i> Save Store Settings</button>
+    </form>
+    {% else %}
+    <div style="display:grid; gap:12px; margin-top:14px;">
+      <div style="display:flex; justify-content:space-between;"><span>Store Name</span><strong>{{ setting.store_name if setting else '—' }}</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Brand</span><strong>{{ setting.brand if setting and setting.brand else '—' }}</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Currency</span><strong>{{ setting.currency if setting else 'USD' }}</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Tax Rate</span><strong>{{ setting.tax_rate if setting else '0' }}%</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Phone</span><strong>{{ setting.store_phone if setting else '—' }}</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Address</span><strong>{{ setting.store_address if setting else '—' }}</strong></div>
+      <div style="display:flex; justify-content:space-between;"><span>Wi-Fi</span><strong>{{ setting.wifi_ssid if setting else '—' }}</strong></div>
+    </div>
+    <p class="muted mt-1" style="font-size:0.85rem;"><i class="fas fa-lock"></i> Only store administrators can modify store configuration.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-key" style="color:var(--primary);"></i> Change My Password</h3>
+    <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="change_password" />
+
+      <label>Current Password *
+        <input type="password" name="current_password" required />
+      </label>
+
+      <label>New Password (min 6 characters) *
+        <input type="password" name="new_password" minlength="6" required />
+      </label>
+
+      <label>Confirm New Password *
+        <input type="password" name="confirm_password" minlength="6" required />
+      </label>
+
+      <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-shield-halved"></i> Update Password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

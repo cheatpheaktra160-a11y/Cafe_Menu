@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pheaktra-coffee
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app -c gunicorn_config.py
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.4
+      - key: RENDER_DISK_PATH
+        value: /opt/render/project/src/data
+    disk:
+      name: cafe-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1

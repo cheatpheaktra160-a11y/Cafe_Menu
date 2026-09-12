@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="{{ setting.store_name if setting else 'PHEAKTRA COFFEE' }} — Artisan coffee, handcrafted drinks, and freshly baked pastries." />
+    <title>{{ title }} | {{ setting.store_name if setting else 'PHEAKTRA COFFEE' }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <link rel="stylesheet" href="/static/css/animations3d.css" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 8h1a4 4 0 1 1 0 8h-1'></path><path d='M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z'></path><line x1='6' y1='2' x2='6' y2='4'></line><line x1='10' y1='2' x2='10' y2='4'></line><line x1='14' y1='2' x2='14' y2='4'></line></svg>" />
+    <!-- Chart.js for analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  </head>
+  <body data-currency="{{ currency_symbol }}">
+    <div id="page-loader" class="page-loader-bar" aria-hidden="true"></div>
+    <div class="ambient-glow" aria-hidden="true"></div>
+    <div class="app-shell {% if not current_user %}public-shell{% endif %}">
+      {% if current_user %}
+      <aside class="sidebar no-print" id="sidebar">
+        <div class="brand">
+          <div class="brand-mark"><i class="fas fa-mug-hot" aria-hidden="true"></i></div>
+          <div>
+            <h1>{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h1>
+            <p><span class="live-dot" title="Online"></span> {{ setting.store_name if setting else 'Cafe Management' }}</p>
+          </div>
+        </div>
+        <nav class="menu">
+          <a href="{{ url_for('dashboard') }}" class="menu-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-chart-pie"></i> Dashboard
+          </a>
+          <a href="{{ url_for('pos') }}" class="menu-item {% if request.endpoint == 'pos' %}active{% endif %}">
+            <i class="fas fa-cash-register"></i> Point of Sale
+          </a>
+          <a href="{{ url_for('kds') }}" class="menu-item {% if request.endpoint == 'kds' %}active{% endif %}">
+            <i class="fas fa-utensils"></i> Kitchen (KDS)
+            {% if active_kitchen_count > 0 %}
+            <span class="badge badge-low kds-badge-count" style="margin-left:auto; font-size:0.75rem; padding:2px 8px;">{{ active_kitchen_count }}</span>
+            {% endif %}
+          </a>
+          <a href="{{ url_for('orders') }}" class="menu-item {% if request.endpoint == 'orders' %}active{% endif %}">
+            <i class="fas fa-receipt"></i> Orders &amp; History
+          </a>
+          <a href="{{ url_for('customers') }}" class="menu-item {% if request.endpoint == 'customers' %}active{% endif %}">
+            <i class="fas fa-users"></i> Customers &amp; Loyalty
+          </a>
+          {% if is_admin %}
+          <a href="{{ url_for('products') }}" class="menu-item {% if request.endpoint == 'products' %}active{% endif %}">
+            <i class="fas fa-mug-hot"></i> Products
+          </a>
+          <a href="{{ url_for('inventory') }}" class="menu-item {% if request.endpoint == 'inventory' %}active{% endif %}">
+            <i class="fas fa-boxes-stacked"></i> Inventory
+          </a>
+          <a href="{{ url_for('expenses') }}" class="menu-item {% if request.endpoint == 'expenses' %}active{% endif %}">
+            <i class="fas fa-wallet"></i> Expenses
+          </a>
+          <a href="{{ url_for('reports') }}" class="menu-item {% if request.endpoint in ('reports', 'z_report') %}active{% endif %}">
+            <i class="fas fa-chart-line"></i> Reports &amp; Analytics
+          </a>
+          <a href="{{ url_for('tables') }}" class="menu-item {% if request.endpoint in ('tables', 'print_all_tables', 'print_single_table') %}active{% endif %}">
+            <i class="fas fa-table-cells"></i> Tables &amp; QR
+          </a>
+          <a href="{{ url_for('users') }}" class="menu-item {% if request.endpoint == 'users' %}active{% endif %}">
+            <i class="fas fa-user-gear"></i> Staff
+          </a>
+          {% endif %}
+          <a href="{{ url_for('settings') }}" class="menu-item {% if request.endpoint == 'settings' %}active{% endif %}">
+            <i class="fas fa-sliders"></i> Store Settings
+          </a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="user-info">
+            <strong>{{ current_user.username }}</strong>
+            <span class="user-role-tag">{{ current_user.role }}</span>
+          </div>
+          <a href="{{ url_for('logout') }}" class="button secondary small"><i class="fas fa-right-from-bracket"></i> Logout</a>
+        </div>
+      </aside>
+      <main class="main-content">
+      {% else %}
+      <nav class="public-nav">
+        <div class="brand compact">
+          <a href="{{ url_for('home') }}" class="brand-link">
+            <div class="brand-mark"><i class="fas fa-mug-hot" aria-hidden="true"></i></div>
+            <div>
+              <h1>{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h1>
+            </div>
+          </a>
+        </div>
+        <button type="button" class="mobile-toggle" id="public-menu-toggle" aria-label="Toggle Navigation">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="public-links" id="public-links">
+          <a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">
+            <i class="fas fa-house"></i> Home
+          </a>
+          <a href="{{ url_for('menu') }}" class="{% if request.endpoint == 'menu' %}active{% endif %}">
+            <i class="fas fa-mug-hot"></i> Menu
+          </a>
+          <a href="{{ url_for('track_order') }}" class="{% if request.endpoint == 'track_order' %}active{% endif %}">
+            <i class="fas fa-location-crosshairs"></i> Track Order
+          </a>
+          <a href="{{ url_for('cart') }}" class="cart-nav-link {% if request.endpoint == 'cart' %}active{% endif %}">
+            <i class="fas fa-shopping-bag"></i> Cart
+            {% if cart_count > 0 %}
+            <span class="cart-badge">{{ cart_count }}</span>
+            {% endif %}
+          </a>
+          <a href="{{ url_for('login') }}" class="staff-login-link {% if request.endpoint == 'login' %}active{% endif %}">
+            <i class="fas fa-lock"></i> Staff Login
+          </a>
+        </div>
+      </nav>
+      <main class="main-full public-main">
+      {% endif %}
+
+        {% if current_user %}
+        <header class="topbar no-print">
+          <div class="topbar-left">
+            <button type="button" class="sidebar-toggle-btn" id="sidebar-toggle" aria-label="Toggle Sidebar">
+              <i class="fas fa-bars"></i>
+            </button>
+            <div>
+              <h2>{{ title }}</h2>
+              {% if setting %}
+              <p class="subtitle">{{ setting.store_name }} &bull; {{ setting.currency }}</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="topbar-actions">
+            {% if is_admin %}
+            <a href="{{ url_for('z_report') }}" class="button secondary small" title="Daily Register Z-Report">
+              <i class="fas fa-file-invoice-dollar"></i> Z-Report
+            </a>
+            {% endif %}
+            <a href="{{ url_for('kds') }}" class="button secondary small" title="Kitchen Display System">
+              <i class="fas fa-utensils"></i> KDS Screen
+            </a>
+            <a href="{{ url_for('home') }}" class="button secondary small" target="_blank" title="View Customer Storefront">
+              <i class="fas fa-store"></i> Customer View
+            </a>
+            <span class="user-chip"><i class="fas fa-user-shield"></i> {{ current_user.role }}</span>
+          </div>
+        </header>
+        {% endif %}
+
+        <section class="content">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="alerts" id="toast-alerts">
+                {% for category, message in messages %}
+                  <div class="alert {{ category }}">
+                    <i class="fas {% if category == 'success' %}fa-check-circle{% elif category == 'error' %}fa-circle-exclamation{% else %}fa-info-circle{% endif %}"></i>
+                    <span>{{ message }}</span>
+                    <button type="button" class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+          {% block content %}{% endblock %}
+        </section>
+      </main>
+    </div>
+    <script src="/static/js/main.js"></script>
+  </body>
+</html>

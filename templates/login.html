@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="login-shell">
+  <div class="login-card">
+    <div style="text-align:center; margin-bottom:28px;">
+      <div class="brand-mark" style="margin:0 auto 16px; width:60px; height:60px; font-size:30px;"><i class="fas fa-mug-hot" aria-hidden="true"></i></div>
+      <h2 style="margin:0; font-size:1.85rem; font-weight:800; letter-spacing:-0.02em;">Staff Portal</h2>
+      <p class="muted" style="margin:8px 0 0; font-size:0.9rem;">Sign in to access POS, Inventory &amp; Management</p>
+    </div>
+
+    <form action="{{ url_for('login') }}" method="post" style="display:grid; gap:16px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      
+      <label>
+        <span style="display:flex; align-items:center; gap:6px;"><i class="fas fa-user" style="color:var(--primary); font-size:0.8rem;"></i> Username</span>
+        <input type="text" name="username" id="login-username" placeholder="admin or cashier" required autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" />
+      </label>
+
+      <label>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="display:flex; align-items:center; gap:6px;"><i class="fas fa-lock" style="color:var(--primary); font-size:0.8rem;"></i> Password</span>
+          <button type="button" id="toggle-pw-btn" class="btn-text-action" style="font-size:0.78rem; color:var(--muted); background:none; border:none; cursor:pointer;" tabindex="-1">
+            <i class="fas fa-eye" id="toggle-pw-icon"></i> Show
+          </button>
+        </div>
+        <input type="password" name="password" id="login-password" placeholder="Enter your password" required autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" />
+      </label>
+
+      <button type="submit" class="button full btn-sheen" style="padding:15px; font-size:1.02rem; margin-top:6px;">
+        <i class="fas fa-right-to-bracket"></i> Sign In to Staff System
+      </button>
+    </form>
+
+    <div style="margin-top:24px; padding:14px; border-radius:var(--radius-md); background:rgba(255,255,255,0.03); border:1px solid var(--border); font-size:0.85rem; color:var(--muted); text-align:center;">
+      <p style="margin:0; font-weight:600;"><i class="fas fa-key" style="color:var(--primary); margin-right:4px;"></i> Quick fill demo credentials:</p>
+      <div style="margin-top:8px; display:flex; justify-content:center; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="login-quick-chip" data-user="admin" data-pw="admin123" title="Tap to fill Admin">
+          <i class="fas fa-user-shield"></i> admin
+        </button>
+        <button type="button" class="login-quick-chip" data-user="cashier" data-pw="cashier123" title="Tap to fill Cashier">
+          <i class="fas fa-cash-register"></i> cashier
+        </button>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+      <a href="{{ url_for('menu') }}" class="muted" style="font-size:0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+        <i class="fas fa-arrow-left"></i> Return to Customer Menu
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

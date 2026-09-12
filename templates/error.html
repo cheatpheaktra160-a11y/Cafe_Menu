@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="login-panel">
+  <div class="login-card">
+    <h1>{{ code }}</h1>
+    <p>{{ message }}</p>
+    <a href="{{ url_for('dashboard') }}" class="button primary">Back to Dashboard</a>
+  </div>
+</div>
+{% endblock %}

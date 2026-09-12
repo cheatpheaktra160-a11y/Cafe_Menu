@@ -1,0 +1,80 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="public-landing">
+  <a href="{{ url_for('menu') }}" class="button secondary small" style="width:fit-content;">
+    <i class="fas fa-arrow-left"></i> Back to Menu
+  </a>
+
+  <div class="grid grid-2 card" style="gap:36px; padding:36px; align-items:start;">
+    <div style="width:100%; aspect-ratio:4/3; border-radius:var(--radius-lg); overflow:hidden; border:1px solid var(--border); box-shadow:0 16px 36px -8px rgba(0,0,0,0.6);">
+      <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" style="width:100%; height:100%; object-fit:cover; transition:transform 0.4s ease;" onmouseover="this.style.transform='scale(1.03)'" onmouseout="this.style.transform='scale(1)'" />
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:18px;">
+      <div>
+        <span class="badge subtle" style="margin-bottom:8px;">{{ product.category_name }}</span>
+        <h2 style="font-size:2rem; font-weight:800; margin:0;">{{ product.name }}</h2>
+        <div style="font-size:2rem; font-weight:800; color:var(--primary); margin-top:8px;">{{ money(product.price) }}</div>
+      </div>
+
+      <p style="color:var(--muted); line-height:1.6; margin:0;">{{ product.description or 'A customer favorite prepared with care.' }}</p>
+
+      {% if product.tags %}
+      <div>
+        <label style="margin-bottom:6px;">Features / Ingredients</label>
+        <div class="product-tags">
+          {% for tag in product.tags.split(',') if tag.strip() %}
+          <span class="product-tag">{{ tag.strip() }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('menu') }}" class="customize-form" style="display:grid; gap:16px; border-top:1px solid var(--border); padding-top:20px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="product_id" value="{{ product.id }}" />
+
+        <div class="grid grid-3">
+          <label>Size
+            <select name="size">
+              <option value="Small">Small</option>
+              <option value="Medium" selected>Medium</option>
+              <option value="Large">Large</option>
+            </select>
+          </label>
+
+          <label>Sweetness
+            <select name="sugar">
+              <option value="0%">0% Sugar</option>
+              <option value="25%">25% Sugar</option>
+              <option value="50%" selected>50% Sugar</option>
+              <option value="75%">75% Sugar</option>
+              <option value="100%">100% Sugar</option>
+            </select>
+          </label>
+
+          <label>Ice Level
+            <select name="ice">
+              <option value="No ice">No ice</option>
+              <option value="Less ice">Less ice</option>
+              <option value="Normal ice" selected>Normal ice</option>
+            </select>
+          </label>
+        </div>
+
+        <label>Quantity
+          <input type="number" name="quantity" min="1" max="{{ product.stock or 10 }}" value="1" style="max-width:120px;" />
+        </label>
+
+        <label>Special Instructions / Kitchen Note
+          <textarea name="note" rows="2" placeholder="e.g. Extra hot, oat milk, less sweet"></textarea>
+        </label>
+
+        <button type="submit" class="button" style="padding:16px; font-size:1.05rem; margin-top:8px;" {% if product.stock <= 0 %}disabled{% endif %}>
+          <i class="fas fa-cart-plus"></i> {% if product.stock <= 0 %}Out of Stock{% else %}Add to Cart - {{ money(product.price) }}{% endif %}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

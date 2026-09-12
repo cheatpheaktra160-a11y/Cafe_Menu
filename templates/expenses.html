@@ -1,0 +1,78 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="grid grid-2">
+  <div class="card">
+    <div class="table-header" style="margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0; font-size:1.4rem;"><i class="fas fa-wallet" style="color:var(--primary);"></i> Expense Tracker</h3>
+        <p class="muted" style="margin:4px 0 0;">Last 30 days total: <strong style="color:var(--danger);">{{ money(month_total) }}</strong></p>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead><tr><th>Title</th><th>Category</th><th>Amount</th><th>Date</th><th style="text-align:right;">Action</th></tr></thead>
+        <tbody>
+          {% for expense in expenses %}
+          <tr>
+            <td>
+              <strong>{{ expense.title }}</strong>
+              {% if expense.note %}<small class="muted" style="display:block;">{{ expense.note }}</small>{% endif %}
+            </td>
+            <td><span class="badge subtle">{{ expense.category }}</span></td>
+            <td><strong style="color:var(--danger);">{{ money(expense.amount) }}</strong></td>
+            <td><small class="muted">{{ expense.created_at.split(' ')[0] }}</small></td>
+            <td style="text-align:right;">
+              <form method="post" onsubmit="return confirm('Delete this expense entry?');" style="display:inline-block;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="action" value="delete" />
+                <input type="hidden" name="expense_id" value="{{ expense.id }}" />
+                <button type="submit" class="button danger small"><i class="fas fa-trash-alt"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="muted" style="text-align:center;">No expenses recorded yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-receipt" style="color:var(--primary);"></i> Record New Expense</h3>
+    <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="create" />
+
+      <label>Expense Title *
+        <input type="text" name="expense_title" placeholder="e.g. Organic Milk Supply" required />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Amount ({{ currency_symbol }}) *
+          <input type="number" step="0.01" min="0.01" name="expense_amount" placeholder="125.00" required />
+        </label>
+
+        <label>Category *
+          <select name="expense_category">
+            <option value="Supplies">Supplies &amp; Ingredients</option>
+            <option value="Rent">Rent &amp; Facility</option>
+            <option value="Utilities">Electricity &amp; Utilities</option>
+            <option value="Salaries">Salaries &amp; Payroll</option>
+            <option value="Maintenance">Repair &amp; Maintenance</option>
+            <option value="Marketing">Marketing &amp; Ads</option>
+            <option value="General">General Expenses</option>
+          </select>
+        </label>
+      </div>
+
+      <label>Note / Reference Number
+        <textarea name="expense_note" rows="3" placeholder="Vendor receipt #1042"></textarea>
+      </label>
+
+      <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-plus"></i> Save Expense Entry</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

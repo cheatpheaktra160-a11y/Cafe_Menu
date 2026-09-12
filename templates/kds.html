@@ -1,0 +1,431 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="kds-container">
+  <div class="kds-header card" style="margin-bottom:20px; padding:16px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+      <div>
+        <h3 style="margin:0; font-size:1.4rem; display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-utensils" style="color:var(--primary);"></i>
+          Kitchen &amp; Barista Live Board (KDS)
+        </h3>
+        <p class="muted" style="margin:4px 0 0; font-size:0.88rem;">
+          Real-time live queue &bull; Auto-syncing every 4s &bull; Click to advance ticket status
+        </p>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <button type="button" id="kds-sound-btn" class="button secondary small" title="Toggle Sound Alerts">
+          <i class="fas fa-volume-high" id="kds-sound-icon" style="color:var(--success);"></i>
+          <span id="kds-sound-text">Chime: ON</span>
+        </button>
+
+        <div class="kds-filters"
+          style="display:inline-flex; gap:6px; background:rgba(0,0,0,0.3); padding:4px; border-radius:var(--radius-md); border:1px solid var(--border);">
+          <button type="button" class="kds-filter-btn active" data-filter="all">All (<span id="kds-count-all">{{
+              orders_with_items | length }}</span>)</button>
+          <button type="button" class="kds-filter-btn" data-filter="Pending">Pending (<span
+              id="kds-count-pending">0</span>)</button>
+          <button type="button" class="kds-filter-btn" data-filter="Preparing">Preparing (<span
+              id="kds-count-preparing">0</span>)</button>
+          <button type="button" class="kds-filter-btn" data-filter="Ready">Ready (<span
+              id="kds-count-ready">0</span>)</button>
+        </div>
+
+        <button type="button" id="kds-refresh-btn" class="button secondary small" title="Force Refresh">
+          <i class="fas fa-sync-alt" id="kds-refresh-icon"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kds-grid" id="kds-grid">
+    {% for entry in orders_with_items %}
+    {% set order = entry.order %}
+    {% set items = entry['items'] %}
+    <div class="kds-card card kds-status-{{ (order.order_status or 'Pending') | lower }}" data-order-id="{{ order.id }}"
+      data-status="{{ order.order_status or 'Pending' }}" data-created="{{ order.created_at }}">
+
+      <div class="kds-card-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <strong class="kds-order-num">{{ order.order_number or ('#' ~ order.id) }}</strong>
+            <span
+              class="badge {{ 'badge-ok' if (order.order_status == 'Ready') else ('badge-low' if (order.order_status == 'Preparing') else 'badge-pending') }}">
+              {{ order.order_status or 'Pending' }}
+            </span>
+          </div>
+          <div class="kds-customer-info">
+            <i class="fas fa-user"></i> {{ order.customer_name or order.customer_full_name or 'Walk-in' }}
+          </div>
+        </div>
+
+        <div style="text-align:right;">
+          <span class="kds-type-badge badge subtle">
+            <i
+              class="fas {% if order.table_number %}fa-chair{% elif order.order_type == 'Delivery' %}fa-truck{% else %}fa-bag-shopping{% endif %}"></i>
+            {% if order.table_number %}Table {{ order.table_number }}{% else %}{{ order.order_type or 'Takeaway' }}{%
+            endif %}
+          </span>
+          <div class="kds-timer" data-timestamp="{{ order.created_at }}">
+            <i class="fas fa-clock"></i> <span class="timer-val">Just now</span>
+          </div>
+        </div>
+      </div>
+
+      {% if order.notes %}
+      <div class="kds-note-box">
+        <i class="fas fa-comment-dots" style="color:var(--primary);"></i>
+        <span><strong>Note:</strong> {{ order.notes }}</span>
+      </div>
+      {% endif %}
+
+      <div class="kds-items-list">
+        {% for item in items %}
+        <div class="kds-item-row">
+          <div class="kds-item-qty">{{ item.quantity }}×</div>
+          <div class="kds-item-details">
+            <strong class="kds-item-name">{{ item.product_name }}</strong>
+            {% if item.options %}
+            <div class="kds-item-options">
+              {% for opt in item.options.replace('{"options": "', '').replace('"}', '').split(';') if opt.strip() %}
+              {% for sub in opt.split(',') if sub.strip() %}
+              <span class="kds-opt-pill">{{ sub.strip() }}</span>
+              {% endfor %}
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="kds-card-actions">
+        {% if (order.order_status or 'Pending') == 'Pending' %}
+        <button type="button" class="button kds-action-btn" data-action="Preparing" data-order-id="{{ order.id }}">
+          <i class="fas fa-fire"></i> Start Preparing
+        </button>
+        {% elif order.order_status == 'Preparing' %}
+        <button type="button" class="button kds-action-btn btn-sheen" style="background:var(--success);"
+          data-action="Ready" data-order-id="{{ order.id }}">
+          <i class="fas fa-bell"></i> Mark Ready
+        </button>
+        {% elif order.order_status == 'Ready' %}
+        <button type="button" class="button secondary kds-action-btn" data-action="Completed"
+          data-order-id="{{ order.id }}">
+          <i class="fas fa-check-circle"></i> Complete / Served
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    {% else %}
+    <div class="card empty-kds" style="grid-column:1/-1; text-align:center; padding:64px 20px;">
+      <i class="fas fa-mug-hot" style="font-size:3.5rem; color:var(--muted); margin-bottom:16px;"></i>
+      <h3 style="margin:0;">Kitchen Queue is Clear!</h3>
+      <p class="muted" style="margin:6px 0 0;">All pending customer orders have been prepared and served.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if completed_recent %}
+  <div class="card mt-1" style="padding:18px 24px;">
+    <h4 style="margin:0 0 12px; font-size:1rem; color:var(--muted); text-transform:uppercase; font-weight:700;">
+      <i class="fas fa-circle-check" style="color:var(--success); margin-right:6px;"></i> Recently Completed (Last 8)
+    </h4>
+    <div style="display:flex; flex-wrap:wrap; gap:10px;">
+      {% for order in completed_recent %}
+      <div
+        style="display:flex; align-items:center; gap:8px; padding:6px 14px; background:rgba(0,0,0,0.25); border-radius:var(--radius-sm); border:1px solid var(--border); font-size:0.85rem;">
+        <strong style="color:var(--primary);">{{ order.order_number or ('#' ~ order.id) }}</strong>
+        <span class="muted">{{ order.customer_name or order.customer_full_name or 'Walk-in' }}</span>
+        <span class="badge subtle" style="font-size:0.75rem;">{{ order.created_at.split(' ')[1][:5] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  (function () {
+    let soundEnabled = true;
+    let audioCtx = null;
+    let lastOrderIds = new Set([
+      {% for entry in orders_with_items %}{{ entry.order.id }}, {% endfor %}
+    ]);
+
+  function playKitchenChime() {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const now = audioCtx.currentTime;
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(587.33, now); // D5
+      osc1.frequency.setValueAtTime(880.00, now + 0.12); // A5
+
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(880.00, now);
+      osc2.frequency.setValueAtTime(1174.66, now + 0.12); // D6
+
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.95);
+      osc2.stop(now + 0.95);
+    } catch (e) {
+      console.warn('Audio chime unavailable', e);
+    }
+  }
+
+  // Toggle sound
+  const soundBtn = document.getElementById('kds-sound-btn');
+  const soundIcon = document.getElementById('kds-sound-icon');
+  const soundText = document.getElementById('kds-sound-text');
+  if (soundBtn) {
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundIcon.className = soundEnabled ? 'fas fa-volume-high' : 'fas fa-volume-xmark';
+      soundIcon.style.color = soundEnabled ? 'var(--success)' : 'var(--muted)';
+      soundText.textContent = soundEnabled ? 'Chime: ON' : 'Chime: OFF';
+      if (soundEnabled) playKitchenChime();
+    });
+  }
+
+  // Filter tabs
+  let currentFilter = 'all';
+  const filterBtns = document.querySelectorAll('.kds-filter-btn');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      applyFilter();
+    });
+  });
+
+  function applyFilter() {
+    const cards = document.querySelectorAll('.kds-card');
+    let counts = { all: cards.length, Pending: 0, Preparing: 0, Ready: 0 };
+    cards.forEach(card => {
+      const st = card.dataset.status || 'Pending';
+      if (counts[st] !== undefined) counts[st]++;
+      if (currentFilter === 'all' || st === currentFilter) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    const cAll = document.getElementById('kds-count-all');
+    const cPen = document.getElementById('kds-count-pending');
+    const cPrep = document.getElementById('kds-count-preparing');
+    const cRdy = document.getElementById('kds-count-ready');
+    if (cAll) cAll.textContent = counts.all;
+    if (cPen) cPen.textContent = counts.Pending;
+    if (cPrep) cPrep.textContent = counts.Preparing;
+    if (cRdy) cRdy.textContent = counts.Ready;
+  }
+
+  // Update timers
+  function updateTimers() {
+    document.querySelectorAll('.kds-timer').forEach(el => {
+      const dtStr = el.dataset.timestamp;
+      if (!dtStr) return;
+      // Parse UTC or local string
+      const orderTime = new Date(dtStr.replace(' ', 'T') + 'Z').getTime();
+      const now = Date.now();
+      const diffMins = Math.max(0, Math.floor((now - orderTime) / 60000));
+
+      const valSpan = el.querySelector('.timer-val');
+      if (!valSpan) return;
+
+      if (diffMins < 1) {
+        valSpan.textContent = '< 1m ago';
+        el.className = 'kds-timer timer-green';
+      } else if (diffMins < 5) {
+        valSpan.textContent = `${diffMins}m ago`;
+        el.className = 'kds-timer timer-green';
+      } else if (diffMins < 10) {
+        valSpan.textContent = `${diffMins}m ago`;
+        el.className = 'kds-timer timer-amber';
+      } else {
+        valSpan.textContent = `${diffMins}m ago!`;
+        el.className = 'kds-timer timer-red';
+      }
+    });
+  }
+
+  // Action button handler
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.kds-action-btn');
+    if (!btn) return;
+    const orderId = btn.dataset.orderId;
+    const nextStatus = btn.dataset.action;
+    if (!orderId || !nextStatus) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+    try {
+      const res = await fetch('/api/kitchen/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: parseInt(orderId, 10), status: nextStatus })
+      });
+      if (res.ok) {
+        fetchKitchenOrders();
+      } else {
+        alert('Failed to update status. Please try again.');
+        btn.disabled = false;
+      }
+    } catch (err) {
+      console.error(err);
+      btn.disabled = false;
+    }
+  });
+
+  // Auto-polling kitchen orders
+  async function fetchKitchenOrders() {
+    try {
+      const res = await fetch('/api/kitchen/orders');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Check for new orders to trigger chime
+      const newIds = new Set(data.orders.map(o => o.id));
+      let hasNew = false;
+      for (let id of newIds) {
+        if (!lastOrderIds.has(id)) {
+          hasNew = true;
+          break;
+        }
+      }
+      if (hasNew) {
+        playKitchenChime();
+      }
+      lastOrderIds = newIds;
+
+      renderKdsOrders(data.orders);
+    } catch (e) {
+      console.warn('KDS polling error', e);
+    }
+  }
+
+  function renderKdsOrders(orders) {
+    const grid = document.getElementById('kds-grid');
+    if (!grid) return;
+    if (!orders.length) {
+      grid.innerHTML = `
+          <div class="card empty-kds" style="grid-column:1/-1; text-align:center; padding:64px 20px;">
+            <i class="fas fa-mug-hot" style="font-size:3.5rem; color:var(--muted); margin-bottom:16px;"></i>
+            <h3 style="margin:0;">Kitchen Queue is Clear!</h3>
+            <p class="muted" style="margin:6px 0 0;">All pending customer orders have been prepared and served.</p>
+          </div>
+        `;
+      applyFilter();
+      return;
+    }
+
+    grid.innerHTML = orders.map(order => {
+      const status = order.order_status || 'Pending';
+      const statusBadgeClass = status === 'Ready' ? 'badge-ok' : (status === 'Preparing' ? 'badge-low' : 'badge-pending');
+      const typeIcon = order.table_number ? 'fa-chair' : (order.order_type === 'Delivery' ? 'fa-truck' : 'fa-bag-shopping');
+      const typeLabel = order.table_number ? `Table ${order.table_number}` : (order.order_type || 'Takeaway');
+
+      let actionBtnHtml = '';
+      if (status === 'Pending') {
+        actionBtnHtml = `<button type="button" class="button kds-action-btn" data-action="Preparing" data-order-id="${order.id}"><i class="fas fa-fire"></i> Start Preparing</button>`;
+      } else if (status === 'Preparing') {
+        actionBtnHtml = `<button type="button" class="button kds-action-btn btn-sheen" style="background:var(--success);" data-action="Ready" data-order-id="${order.id}"><i class="fas fa-bell"></i> Mark Ready</button>`;
+      } else if (status === 'Ready') {
+        actionBtnHtml = `<button type="button" class="button secondary kds-action-btn" data-action="Completed" data-order-id="${order.id}"><i class="fas fa-check-circle"></i> Complete / Served</button>`;
+      }
+
+      const itemsHtml = order.items.map(item => {
+        let optsHtml = '';
+        if (item.options) {
+          const rawOpts = item.options.replace('{"options": "', '').replace('"}', '');
+          const pills = rawOpts.split(';').flatMap(o => o.split(',')).map(s => s.trim()).filter(Boolean);
+          optsHtml = pills.map(p => `<span class="kds-opt-pill">${p}</span>`).join('');
+        }
+        return `
+            <div class="kds-item-row">
+              <div class="kds-item-qty">${item.qty}×</div>
+              <div class="kds-item-details">
+                <strong class="kds-item-name">${item.name}</strong>
+                ${optsHtml ? `<div class="kds-item-options">${optsHtml}</div>` : ''}
+              </div>
+            </div>
+          `;
+      }).join('');
+
+      const noteHtml = order.notes ? `
+          <div class="kds-note-box">
+            <i class="fas fa-comment-dots" style="color:var(--primary);"></i>
+            <span><strong>Note:</strong> ${order.notes}</span>
+          </div>
+        ` : '';
+
+      return `
+          <div class="kds-card card kds-status-${status.toLowerCase()}"
+               data-order-id="${order.id}"
+               data-status="${status}"
+               data-created="${order.created_at}">
+            <div class="kds-card-header">
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <strong class="kds-order-num">${order.order_number}</strong>
+                  <span class="badge ${statusBadgeClass}">${status}</span>
+                </div>
+                <div class="kds-customer-info"><i class="fas fa-user"></i> ${order.customer_name}</div>
+              </div>
+              <div style="text-align:right;">
+                <span class="kds-type-badge badge subtle"><i class="fas ${typeIcon}"></i> ${typeLabel}</span>
+                <div class="kds-timer" data-timestamp="${order.created_at}">
+                  <i class="fas fa-clock"></i> <span class="timer-val">Just now</span>
+                </div>
+              </div>
+            </div>
+            ${noteHtml}
+            <div class="kds-items-list">${itemsHtml}</div>
+            <div class="kds-card-actions">${actionBtnHtml}</div>
+          </div>
+        `;
+    }).join('');
+
+    updateTimers();
+    applyFilter();
+  }
+
+  const refreshBtn = document.getElementById('kds-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      const icon = document.getElementById('kds-refresh-icon');
+      if (icon) icon.classList.add('fa-spin');
+      fetchKitchenOrders().finally(() => {
+        if (icon) setTimeout(() => icon.classList.remove('fa-spin'), 600);
+      });
+    });
+  }
+
+  // Interval timers
+  setInterval(updateTimers, 15000);
+  setInterval(fetchKitchenOrders, 4000);
+  updateTimers();
+  applyFilter();
+  }) ();
+</script>
+{% endblock %}

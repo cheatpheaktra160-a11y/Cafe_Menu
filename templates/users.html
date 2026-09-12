@@ -1,0 +1,94 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="grid grid-2">
+  <div class="card">
+    <div class="table-header" style="margin-bottom:16px;">
+      <h3><i class="fas fa-users-gear" style="color:var(--primary);"></i> Staff Accounts</h3>
+      <span class="muted">{{ users | length }} user accounts</span>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead><tr><th>User</th><th>Role</th><th>Status</th><th style="text-align:right;">Actions</th></tr></thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>
+              <strong>{{ user.username }}</strong>
+              {% if user.id == current_user.id %}<span class="badge badge-ok" style="margin-left:4px;">You</span>{% endif %}
+            </td>
+            <td><span class="badge subtle">{{ user.role }}</span></td>
+            <td>
+              <span class="badge {{ 'badge-ok' if user.active else 'badge-out' }}">
+                {{ 'Active' if user.active else 'Inactive' }}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              {% if user.id != current_user.id %}
+              <div style="display:flex; gap:6px; justify-content:flex-end;">
+                <form method="post" style="display:inline-block;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="action" value="toggle_active" />
+                  <input type="hidden" name="user_id" value="{{ user.id }}" />
+                  <button type="submit" class="button secondary small">
+                    {{ 'Deactivate' if user.active else 'Activate' }}
+                  </button>
+                </form>
+                <form method="post" onsubmit="return confirm('Delete staff user {{ user.username }}?');" style="display:inline-block;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="user_id" value="{{ user.id }}" />
+                  <button type="submit" class="button danger small"><i class="fas fa-trash-alt"></i></button>
+                </form>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td colspan="4" style="background:rgba(0,0,0,0.15); padding:10px 14px;">
+              <form method="post" style="display:flex; align-items:center; gap:10px;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input type="hidden" name="action" value="reset_password" />
+                <input type="hidden" name="user_id" value="{{ user.id }}" />
+                <span class="muted" style="font-size:0.8rem; font-weight:600;">Reset Password:</span>
+                <input type="password" name="new_password" minlength="6" placeholder="New password" required style="padding:4px 10px; font-size:0.85rem; width:160px;" />
+                <button type="submit" class="button secondary small" style="padding:4px 10px;">Reset</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3><i class="fas fa-user-plus" style="color:var(--primary);"></i> Create New Staff Account</h3>
+    <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="create" />
+
+      <label>Username (min 3 characters) *
+        <input type="text" name="username" minlength="3" placeholder="e.g. alex_cashier" required />
+      </label>
+
+      <label>Password (min 6 characters) *
+        <input type="password" name="password" minlength="6" placeholder="Enter password" required />
+      </label>
+
+      <label>System Role *
+        <select name="role">
+          <option value="Cashier">Cashier (POS &amp; Orders)</option>
+          <option value="Admin">Admin (Full System Access)</option>
+        </select>
+      </label>
+
+      <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-plus"></i> Create Account</button>
+    </form>
+    
+    <p class="muted mt-1" style="font-size:0.85rem; line-height:1.4;">
+      <i class="fas fa-info-circle"></i> Note: Users who have processed past orders cannot be permanently deleted so financial receipts stay intact. You can deactivate their account instead.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="grid grid-2">
+  <div class="card">
+    <div class="table-header" style="margin-bottom:16px;">
+      <div>
+        <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-crown" style="color:var(--accent);"></i> Customer
+          Loyalty Directory</h3>
+        <span class="muted" style="font-size:0.85rem;">{{ customers | length }} registered customer profiles</span>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Tier &amp; Points</th>
+            <th>Orders</th>
+            <th>Lifetime Spend</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for customer in customers %}
+          {% set tier = get_customer_tier(customer.spent) %}
+          <tr>
+            <td>
+              <strong>{{ customer.name }}</strong>
+              {% if customer.phone %}<small class="muted" style="display:block; font-size:0.8rem;"><i
+                  class="fas fa-phone"></i> {{ customer.phone }}</small>{% endif %}
+            </td>
+            <td>
+              <span
+                class="badge {% if tier == 'Platinum' %}badge-platinum{% elif tier == 'Gold' %}badge-gold{% elif tier == 'Silver' %}badge-silver{% else %}badge-bronze{% endif %}"
+                style="font-size:0.75rem;">
+                {{ tier }}
+              </span>
+              <strong style="color:var(--accent); display:block; font-size:0.82rem; margin-top:2px;">{{ customer.points
+                }} pts</strong>
+            </td>
+            <td><span class="badge subtle">{{ customer.order_count }} orders</span></td>
+            <td><strong style="color:var(--primary);">{{ money(customer.spent) }}</strong></td>
+            <td style="text-align:right;">
+              <div style="display:flex; gap:6px; justify-content:flex-end;">
+                <a href="{{ url_for('customers', edit=customer.id) }}" class="button secondary small"
+                  title="Edit Customer"><i class="fas fa-pen-to-square"></i></a>
+                {% if is_admin %}
+                <form method="post"
+                  onsubmit="return confirm('Delete customer {{ customer.name }}? Historical orders will be preserved.');"
+                  style="display:inline-block;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="action" value="delete" />
+                  <input type="hidden" name="customer_id" value="{{ customer.id }}" />
+                  <button type="submit" class="button danger small" title="Delete Profile"><i
+                      class="fas fa-trash-alt"></i></button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="muted" style="text-align:center; padding:32px;">No customer profiles recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if edit_customer %}
+    <h3><i class="fas fa-user-pen" style="color:var(--primary);"></i> Edit Customer #{{ edit_customer.id }}</h3>
+    <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="update" />
+      <input type="hidden" name="customer_id" value="{{ edit_customer.id }}" />
+
+      <label>Full Name *
+        <input type="text" name="customer_name" value="{{ edit_customer.name }}" required />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Phone Number
+          <input type="text" name="customer_phone" value="{{ edit_customer.phone }}" placeholder="+855 71 303 3038" />
+        </label>
+        <label>Email Address
+          <input type="email" name="customer_email" value="{{ edit_customer.email }}" placeholder="PT99@gmail.com" />
+        </label>
+      </div>
+
+      <label>Loyalty Points
+        <input type="number" name="customer_points" value="{{ edit_customer.points }}" min="0" />
+      </label>
+
+      <label>Preferences / Drink Notes
+        <textarea name="customer_notes" rows="3">{{ edit_customer.notes }}</textarea>
+      </label>
+
+      <div style="display:flex; gap:10px; margin-top:8px;">
+        <button type="submit" class="button"><i class="fas fa-save"></i> Save Changes</button>
+        <a href="{{ url_for('customers') }}" class="button secondary">Cancel</a>
+      </div>
+    </form>
+    {% else %}
+    <h3><i class="fas fa-user-plus" style="color:var(--primary);"></i> Add Customer Profile</h3>
+    <form method="post" style="display:grid; gap:14px; margin-top:14px;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="action" value="create" />
+
+      <label>Full Name *
+        <input type="text" name="customer_name" placeholder="Pheaktra" required />
+      </label>
+
+      <div class="grid grid-2">
+        <label>Phone Number
+          <input type="text" name="customer_phone" placeholder="+855 71 303 3038" />
+        </label>
+        <label>Email Address
+          <input type="email" name="customer_email" placeholder="PT99@gmail.com" />
+        </label>
+      </div>
+
+      <label>Starting Loyalty Points
+        <input type="number" name="customer_points" value="0" min="0" />
+      </label>
+
+      <label>Preferences / Notes
+        <textarea name="customer_notes" rows="3" placeholder="e.g. Prefers oat milk, 50% sweetness"></textarea>
+      </label>
+
+      <button type="submit" class="button" style="margin-top:8px;"><i class="fas fa-plus"></i> Save Customer</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

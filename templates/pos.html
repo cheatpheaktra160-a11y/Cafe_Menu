@@ -1,0 +1,294 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="pos-mobile-nav no-print" id="pos-mobile-nav">
+  <button type="button" class="pos-mobile-tab active" id="pos-tab-catalog" data-tab="catalog">
+    <i class="fas fa-grip"></i> Catalog
+  </button>
+  <button type="button" class="pos-mobile-tab" id="pos-tab-cart" data-tab="cart">
+    <i class="fas fa-shopping-cart"></i> Order Cart
+    <span class="badge badge-primary mobile-cart-count" id="mobile-cart-badge">0</span>
+  </button>
+</div>
+
+<div class="pos-shell">
+  <section class="pos-left" id="pos-left-pane">
+    <div class="panel pos-categories">
+      <div class="table-header">
+        <div>
+          <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-cash-register" style="color:var(--primary);"></i> Point of Sale</h3>
+          <span class="muted" style="font-size:0.85rem;">{{ products | length }} items in catalog &bull; Press <kbd class="kbd-key">F2</kbd> to search</span>
+        </div>
+        <div class="search-input-wrap" style="max-width: 260px;">
+          <i class="fas fa-search"></i>
+          <input type="text" id="pos-search" placeholder="Search menu items (F2)..." />
+        </div>
+      </div>
+
+      <div class="category-list">
+        <button type="button" class="category-button active" data-category="all">
+          <i class="fas fa-grid-2"></i> All Items
+        </button>
+        {% for category in categories %}
+        <button type="button" class="category-button" data-category="{{ category.id }}">
+          {{ category.name }}
+        </button>
+        {% endfor %}
+      </div>
+
+      <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card {% if product.stock <= 0 %}out-of-stock{% endif %}"
+             data-category="{{ product.category_id }}"
+             data-tags="{{ product.tags }}">
+          <div class="product-img-wrap">
+            <img src="{{ product.image_url or '/static/img/placeholder.svg' }}" alt="{{ product.name }}" loading="lazy" />
+            {% if product.is_featured %}
+            <span class="pos-featured-badge" title="Customer Favorite"><i class="fas fa-star"></i> Top</span>
+            {% endif %}
+          </div>
+          <strong>{{ product.name }}</strong>
+          {% if product.tags %}
+          <div class="product-tags">
+            {% for tag in product.tags.split(',') if tag.strip() %}
+            <span class="product-tag">{{ tag.strip() }}</span>
+            {% endfor %}
+          </div>
+          {% endif %}
+          <div class="product-meta">
+            <span style="font-weight:800; color:var(--primary);">{{ money(product.price) }}</span>
+            <span class="badge {{ 'badge-out' if product.stock <= 0 else ('badge-low' if product.stock <= low_stock_threshold else 'badge-ok') }}">
+              {{ product.stock }} left
+            </span>
+          </div>
+          <button type="button" class="button secondary small add-product"
+                  data-product='{{ {"id": product.id, "name": product.name, "price": product.price, "stock": product.stock, "tags": product.tags} | tojson }}'
+                  {% if product.stock <= 0 %}disabled{% endif %}>
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="pos-right cart-panel" id="pos-right-pane">
+    <div class="card">
+      <div class="table-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button type="button" class="button secondary small pos-mobile-back-btn" id="pos-back-catalog-btn" title="Back to Product Catalog">
+            <i class="fas fa-arrow-left"></i> Catalog
+          </button>
+          <i class="fas fa-shopping-cart" style="color:var(--primary); font-size:1.2rem;"></i>
+          <h3 style="margin:0; font-size:1.2rem;">Current Order</h3>
+        </div>
+        <button type="button" id="clear-cart" class="button danger small" title="Clear order (F4)"><i class="fas fa-trash-alt"></i> Clear (F4)</button>
+      </div>
+
+      <!-- Order Type Selector -->
+      <div class="order-type-selector mt-1">
+        <button type="button" class="order-type-btn active" data-type="Dine-In">
+          <i class="fas fa-chair"></i> Dine-In
+        </button>
+        <button type="button" class="order-type-btn" data-type="Takeaway">
+          <i class="fas fa-bag-shopping"></i> Takeaway
+        </button>
+        <button type="button" class="order-type-btn" data-type="Delivery">
+          <i class="fas fa-truck"></i> Delivery
+        </button>
+      </div>
+
+      <div class="cart-table-wrap mt-1">
+        <table class="cart-table">
+          <thead>
+            <tr><th>Item</th><th>Qty</th><th>Total</th><th></th></tr>
+          </thead>
+          <tbody id="cart-items"></tbody>
+        </table>
+      </div>
+
+      <!-- Customer Selection & Quick Add -->
+      <div class="pos-customer-section mt-1">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="margin:0; font-size:0.85rem; font-weight:700;">Customer &amp; Loyalty</label>
+          <button type="button" id="open-quick-customer" class="btn-text-action" style="font-size:0.8rem; color:var(--primary);">
+            <i class="fas fa-user-plus"></i> New Customer
+          </button>
+        </div>
+        <select name="customer_select" id="pos-customer-select">
+          <option value="">Walk-in Customer</option>
+          {% for customer in customers %}
+          <option value="{{ customer.id }}" data-phone="{{ customer.phone }}" data-points="{{ customer.points }}">
+            {{ customer.name }} {% if customer.phone %}({{ customer.phone }}){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        
+        <!-- Loyalty points display bar -->
+        <div id="pos-loyalty-bar" class="pos-loyalty-card" style="display:none;">
+          <div>
+            <span class="badge subtle" id="pos-cust-tier" style="font-size:0.75rem;">Bronze</span>
+            <strong id="pos-cust-points" style="margin-left:6px; color:var(--accent);">0 pts</strong>
+          </div>
+          <button type="button" id="pos-redeem-pts-btn" class="button secondary small" style="padding:4px 10px; font-size:0.75rem;">
+            Redeem Points
+          </button>
+        </div>
+      </div>
+
+      <!-- Dine-in Table Selection -->
+      <div id="pos-table-group" class="mt-1">
+        <label style="font-size:0.85rem; font-weight:700;">Select Seating Table
+          <select name="table_id" id="pos-table-select">
+            <option value="">Counter / No Table Assigned</option>
+            {% for table in tables %}
+            <option value="{{ table.id }}">Table {{ table.table_number }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <!-- Quick Discount Presets -->
+      <div class="pos-discount-section mt-1">
+        <label style="font-size:0.85rem; font-weight:700; margin-bottom:6px;">Quick Discount</label>
+        <div class="discount-presets">
+          <button type="button" class="discount-preset-btn" data-pct="5">5%</button>
+          <button type="button" class="discount-preset-btn" data-pct="10">10%</button>
+          <button type="button" class="discount-preset-btn" data-pct="15">15%</button>
+          <button type="button" class="discount-preset-btn" data-pct="20">20%</button>
+          <button type="button" class="discount-preset-btn reset" data-pct="0">Clear</button>
+        </div>
+      </div>
+
+      <div class="cart-summary mt-1">
+        <div><span>Subtotal</span><strong id="cart-subtotal">{{ currency_symbol }}0.00</strong></div>
+        <div><span>Discount</span><strong id="cart-discount" style="color:var(--danger);">{{ currency_symbol }}0.00</strong></div>
+        {% if tax_rate > 0 %}
+        <div><span>Tax ({{ tax_rate }}%)</span><strong id="cart-tax">{{ currency_symbol }}0.00</strong></div>
+        {% endif %}
+        <div class="cart-total-row"><span>Grand Total</span><strong id="cart-total">{{ currency_symbol }}0.00</strong></div>
+      </div>
+
+      <form method="post" id="pos-form" class="mt-1" style="display:grid; gap:12px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="cart_data" id="cart-data" />
+        <input type="hidden" name="order_type" id="order-type-val" value="Dine-In" />
+        <input type="hidden" name="table_id" id="table-id-val" value="" />
+        <input type="hidden" name="customer_id" id="customer-id-val" value="" />
+        <input type="hidden" name="points_redeemed" id="points-redeemed-val" value="0" />
+
+        <div class="grid grid-2">
+          <label style="font-size:0.85rem;">Payment Method
+            <select name="payment_method" id="payment-method">
+              <option value="Cash">Cash</option>
+              <option value="Card">Card</option>
+              <option value="QR">QR Code (KHQR/App)</option>
+            </select>
+          </label>
+
+          <label style="font-size:0.85rem;">Discount ({{ currency_symbol }})
+            <input type="number" step="0.01" min="0" name="order_discount" id="order-discount" value="0" />
+          </label>
+        </div>
+
+        <!-- Quick Cash Tender Buttons -->
+        <div id="cash-tender-group">
+          <label style="font-size:0.85rem; font-weight:700; margin-bottom:6px;">Quick Cash Tender</label>
+          <div class="cash-presets">
+            <button type="button" class="cash-preset-btn" data-amount="exact">Exact</button>
+            <button type="button" class="cash-preset-btn" data-amount="5">$5</button>
+            <button type="button" class="cash-preset-btn" data-amount="10">$10</button>
+            <button type="button" class="cash-preset-btn" data-amount="20">$20</button>
+            <button type="button" class="cash-preset-btn" data-amount="50">$50</button>
+            <button type="button" class="cash-preset-btn" data-amount="100">$100</button>
+          </div>
+        </div>
+
+        <label style="font-size:0.85rem;">Paid Amount ({{ currency_symbol }})
+          <input type="number" step="0.01" min="0" name="paid_amount" id="paid-amount" value="0" />
+        </label>
+
+        <div class="change-due">
+          <span>Change Due</span>
+          <strong id="change-due" style="font-size:1.3rem; color:var(--success);">{{ currency_symbol }}0.00</strong>
+        </div>
+
+        <button type="submit" class="button full btn-sheen" id="pos-submit-btn" style="padding:16px; font-size:1.05rem;">
+          <i class="fas fa-check-circle"></i> Complete Payment &amp; Print
+        </button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<!-- Mobile Floating Cart Bar -->
+<div class="pos-mobile-cart-bar no-print" id="pos-mobile-cart-bar" style="display:none;">
+  <div class="pos-mobile-bar-info">
+    <span class="pos-mobile-bar-items"><i class="fas fa-shopping-bag" style="color:var(--primary);"></i> <strong id="mobile-bar-qty">0 items</strong></span>
+    <span class="pos-mobile-bar-total" id="mobile-bar-total">{{ currency_symbol }}0.00</span>
+  </div>
+  <button type="button" class="button btn-sheen small pos-mobile-bar-btn" id="pos-mobile-bar-pay-btn">
+    <span>View Cart &amp; Pay</span> <i class="fas fa-arrow-right"></i>
+  </button>
+</div>
+
+<!-- Product customization modal -->
+<div id="custom-modal" class="modal-backdrop" hidden aria-modal="true" role="dialog">
+  <div class="modal">
+    <div style="display:flex; justify-content:space-between; align-items:start;">
+      <div>
+        <h3 id="modal-title" style="margin:0;">Customize Item</h3>
+        <p class="subtitle" id="modal-price" style="margin-top:4px;"></p>
+      </div>
+      <button type="button" class="alert-close" id="modal-close-btn" aria-label="Close"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    
+    <div>
+      <label style="margin-bottom:8px;">Item Options &amp; Add-ons</label>
+      <div id="modal-options" class="modal-options" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    </div>
+
+    <label>Special Instructions
+      <textarea id="modal-note" rows="2" placeholder="e.g. Extra hot, oat milk, less ice"></textarea>
+    </label>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <label style="margin:0;">Quantity</label>
+      <div class="qty-stepper">
+        <button type="button" id="modal-qty-minus" aria-label="Decrease Quantity"><i class="fas fa-minus"></i></button>
+        <strong id="modal-qty" style="font-size:1.1rem; min-width:24px; text-align:center;">1</strong>
+        <button type="button" id="modal-qty-plus" aria-label="Increase Quantity"><i class="fas fa-plus"></i></button>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+      <button type="button" class="button secondary" id="modal-cancel">Cancel</button>
+      <button type="button" class="button" id="modal-add"><i class="fas fa-cart-plus"></i> Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Customer Modal -->
+<div id="quick-customer-modal" class="modal-backdrop" hidden aria-modal="true" role="dialog">
+  <div class="modal" style="max-width:440px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h3 style="margin:0;"><i class="fas fa-user-plus" style="color:var(--primary);"></i> Add Customer</h3>
+      <button type="button" class="alert-close" id="quick-cust-close"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form id="quick-customer-form" style="display:grid; gap:12px; margin-top:12px;">
+      <label>Full Name *
+        <input type="text" id="qc-name" placeholder="e.g. John Smith" required />
+      </label>
+      <label>Phone Number
+        <input type="tel" id="qc-phone" placeholder="e.g. +1 555 1234" />
+      </label>
+      <label>Email Address
+        <input type="email" id="qc-email" placeholder="john@example.com" />
+      </label>
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:6px;">
+        <button type="button" class="button secondary" id="qc-cancel">Cancel</button>
+        <button type="submit" class="button" id="qc-save"><i class="fas fa-plus"></i> Save &amp; Select</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

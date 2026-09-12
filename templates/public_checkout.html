@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="public-landing">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Final Step</p>
+      <h2 style="font-size:2rem; font-weight:800; margin:4px 0 0;">Checkout &amp; Place Order</h2>
+    </div>
+  </div>
+
+  <div class="cart-page-grid">
+    <div class="card" style="padding:28px;">
+      <form method="post" action="{{ url_for('checkout') }}" style="display:grid; gap:18px;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        
+        <label>Your Full Name *
+          <input type="text" name="customer_name" placeholder="e.g. Jane Doe" required />
+        </label>
+
+        <label>Phone Number (Optional for order SMS updates)
+          <input type="tel" name="phone" placeholder="+1 (555) 000-1122" />
+        </label>
+
+        <label>Seating / Delivery Option
+          <select name="table_id">
+            <option value="">Takeaway / Pickup</option>
+            {% for table in tables %}
+            <option value="{{ table.id }}" {% if table.id == session_table_id %}selected{% endif %}>
+              Dine-in (Table {{ table.table_number }})
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>Special Instructions / Notes
+          <textarea name="notes" rows="3" placeholder="e.g. Please bring extra napkins, extra hot espresso"></textarea>
+        </label>
+
+        <button type="submit" class="button full" style="padding:16px; font-size:1.05rem; margin-top:8px;">
+          <i class="fas fa-check-circle"></i> Confirm &amp; Place Order ({{ money(subtotal) }})
+        </button>
+      </form>
+    </div>
+
+    <aside class="card" style="display:grid; gap:16px; padding:24px;">
+      <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-shopping-bag" style="color:var(--primary);"></i> Order Summary</h3>
+      
+      <div style="display:grid; gap:12px; border-bottom:1px solid var(--border); padding-bottom:14px;">
+        {% for item in cart_items %}
+        <div style="display:flex; justify-content:space-between; align-items:start;">
+          <div>
+            <strong style="font-size:0.95rem;">{{ item.quantity }}× {{ item.name }}</strong>
+            <p class="muted" style="margin:2px 0 0; font-size:0.8rem;">{{ item.options }}</p>
+          </div>
+          <strong style="color:var(--primary);">{{ money(item.line_total) }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div style="display:flex; justify-content:space-between; font-size:1.25rem; font-weight:800;">
+        <span>Total Payable</span>
+        <strong style="color:var(--primary);">{{ money(subtotal) }}</strong>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="receipt-wrapper">
+  <div class="receipt-card {% if order.status == 'Voided' %}receipt-voided{% endif %}">
+    <div style="text-align:center; border-bottom:1px dashed var(--border-light); padding-bottom:18px; margin-bottom:18px;">
+      <div class="brand-mark" style="margin:0 auto 12px; width:52px; height:52px; font-size:26px;"><i class="fas fa-mug-hot" aria-hidden="true"></i></div>
+      <h2 style="margin:0; font-size:1.6rem; font-weight:800; letter-spacing:-0.01em;">{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h2>
+      <p class="muted" style="margin:2px 0 0; font-size:0.85rem;">{{ setting.store_name if setting else 'Artisan Coffee Roasters' }}</p>
+      {% if setting and setting.store_address %}
+      <p class="muted" style="margin:2px 0 0; font-size:0.78rem;">{{ setting.store_address }} &bull; Tel: {{ setting.store_phone }}</p>
+      {% endif %}
+      
+      <div style="margin-top:12px; display:flex; justify-content:center; gap:8px; align-items:center;">
+        <span class="badge subtle" style="font-size:0.85rem; padding:4px 12px;"><i class="fas fa-hashtag" style="color:var(--primary); font-size:0.75rem;"></i> {{ order.order_number or ('#' ~ order.id) }}</span>
+        {% if order.status == 'Voided' %}<span class="badge badge-voided" style="font-size:0.85rem;">VOIDED</span>{% endif %}
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:0.88rem; margin-bottom:18px; border-bottom:1px dashed var(--border-light); padding-bottom:16px;">
+      <div><span class="muted">Cashier:</span> <strong>{{ order.cashier_name or 'Staff' }}</strong></div>
+      <div style="text-align:right;"><span class="muted">Customer:</span> <strong>{{ order.customer_name or 'Walk-in' }}</strong></div>
+      <div>
+        <span class="muted">Type:</span>
+        <strong>{% if order.table_number %}Dine-in (Table {{ order.table_number }}){% else %}{{ order.order_type or 'Takeaway' }}{% endif %}</strong>
+      </div>
+      <div style="text-align:right;"><span class="muted">Payment:</span> <strong>{{ order.payment_method }}</strong></div>
+      <div><span class="muted">Date:</span> <strong>{{ order.created_at.split(' ')[0] }}</strong></div>
+      <div style="text-align:right;"><span class="muted">Time:</span> <strong>{{ order.created_at.split(' ')[1] }}</strong></div>
+    </div>
+
+    <div class="table-responsive" style="margin-bottom:18px;">
+      <table>
+        <thead><tr><th>Item</th><th>Qty</th><th style="text-align:right;">Total</th></tr></thead>
+        <tbody>
+          {% for item in items %}
+          <tr>
+            <td>
+              <strong>{{ item.product_name }}</strong>
+              {% if item.options %}
+              <small class="muted" style="display:block; font-size:0.78rem;">
+                {{ item.options.replace('{"options": "', '').replace('"}', '') }}
+              </small>
+              {% endif %}
+            </td>
+            <td><strong>{{ item.quantity }}</strong></td>
+            <td style="text-align:right; font-variant-numeric:tabular-nums;"><strong>{{ money(item.unit_price * item.quantity - item.discount) }}</strong></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:grid; gap:8px; border-top:1px dashed var(--border-light); padding-top:16px; margin-bottom:18px; font-size:0.92rem;">
+      {% if order.discount %}
+      <div style="display:flex; justify-content:space-between; color:var(--muted);">
+        <span>Order Discount</span><strong style="color:var(--danger);">-{{ money(order.discount) }}</strong>
+      </div>
+      {% endif %}
+      {% if order.tax_amount and order.tax_amount > 0 %}
+      <div style="display:flex; justify-content:space-between; color:var(--muted);">
+        <span>Tax (VAT)</span><strong>{{ money(order.tax_amount) }}</strong>
+      </div>
+      {% endif %}
+      <div style="display:flex; justify-content:space-between; font-size:1.3rem; font-weight:800; border-top:1px solid var(--border); padding-top:8px;">
+        <span>Total Amount</span><strong style="color:var(--primary); font-variant-numeric:tabular-nums;">{{ money(order.total) }}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; color:var(--muted);">
+        <span>Paid Amount</span><strong style="font-variant-numeric:tabular-nums;">{{ money(order.paid_amount) }}</strong>
+      </div>
+      <div style="display:flex; justify-content:space-between; color:var(--muted);">
+        <span>Change Due</span><strong style="color:var(--success); font-variant-numeric:tabular-nums;">{{ money(change_due) }}</strong>
+      </div>
+      {% if order.points_earned and order.points_earned > 0 %}
+      <div style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--accent); border-top:1px dashed var(--border-light); padding-top:6px;">
+        <span><i class="fas fa-crown"></i> Loyalty Points Earned</span>
+        <strong>+{{ order.points_earned }} pts</strong>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if qr_url %}
+    <div style="display:flex; justify-content:center; margin:16px 0 8px;">
+      <img src="{{ qr_url }}" alt="Order QR Verification" style="width:110px; height:110px; background:#fff; padding:6px; border-radius:10px;" />
+    </div>
+    {% endif %}
+
+    <div class="receipt-barcode" aria-hidden="true"></div>
+    <p class="muted" style="text-align:center; font-size:0.75rem; margin:6px 0 8px; letter-spacing:0.06em; text-transform:uppercase;">
+      {{ setting.receipt_footer if setting and setting.receipt_footer else 'Thank You for Visiting &bull; Savor Every Sip' }}
+    </p>
+
+    {% if setting and setting.wifi_ssid %}
+    <div style="text-align:center; font-size:0.72rem; color:var(--muted); border-top:1px dashed var(--border-light); padding-top:8px; margin-top:8px;">
+      <i class="fas fa-wifi"></i> Guest Wi-Fi: <strong>{{ setting.wifi_ssid }}</strong> &bull; Password: <strong>{{ setting.wifi_password }}</strong>
+    </div>
+    {% endif %}
+  </div>
+  <div class="receipt-edge" aria-hidden="true"></div>
+
+  <div class="no-print" style="display:flex; gap:12px; margin-top:24px;">
+    <button onclick="window.print()" class="button full btn-sheen"><i class="fas fa-print"></i> Print Receipt</button>
+    <a href="{{ url_for('orders') }}" class="button secondary full"><i class="fas fa-arrow-left"></i> Back to Orders</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="card">
+  <div class="table-header" style="margin-bottom:24px; flex-wrap:wrap; gap:16px;">
+    <div>
+      <h3 style="margin:0; font-size:1.4rem;"><i class="fas fa-table-cells" style="color:var(--primary);"></i> Table Management &amp; QR Stands</h3>
+      <p class="muted" style="margin:4px 0 0;">Manage seating tables, live occupancy status, and print table QR cards for guest ordering</p>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <a href="{{ url_for('print_all_tables') }}" target="_blank" class="button btn-sheen" style="padding:10px 18px;">
+        <i class="fas fa-print"></i> Print All QR Stands
+      </a>
+
+      <form method="post" style="display:flex; gap:8px; align-items:center;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="action" value="add_table" />
+        <input type="number" name="table_number" min="1" max="200" placeholder="Table #" required style="width:100px; padding:10px;" />
+        <button type="submit" class="button secondary"><i class="fas fa-plus"></i> Add Table</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="grid grid-3">
+    {% for table in tables %}
+    <div class="card" style="display:grid; gap:14px; text-align:center; padding:20px; background:var(--surface-card); position:relative;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:1.2rem;">Table {{ table.table_number }}</strong>
+        <div style="display:flex; gap:6px;">
+          {% if table.id in occupied_tables %}
+          <span class="badge badge-low" title="Has active pending/preparing orders">Occupied</span>
+          {% else %}
+          <span class="badge subtle">Free</span>
+          {% endif %}
+          <span class="badge {{ 'badge-ok' if table.is_active else 'badge-out' }}">
+            {{ 'Active' if table.is_active else 'Inactive' }}
+          </span>
+        </div>
+      </div>
+
+      <div style="background:#ffffff; border-radius:var(--radius-md); padding:16px; display:grid; place-items:center; border:1px solid var(--border);">
+        {% if qr_images.get(table.id) %}
+        <img src="{{ qr_images[table.id] }}" alt="QR for Table {{ table.table_number }}" style="max-width:140px; height:auto;" />
+        {% else %}
+        <i class="fas fa-qrcode" style="font-size:4rem; color:#1e293b;"></i>
+        {% endif %}
+      </div>
+
+      <div style="font-size:0.82rem; color:var(--muted); word-break:break-all;">
+        <code>{{ table.qr_code }}</code>
+      </div>
+
+      <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
+        <a href="{{ url_for('print_single_table', table_id=table.id) }}" target="_blank" class="button secondary small" title="Print stand card">
+          <i class="fas fa-print"></i> Print Card
+        </a>
+        <a href="{{ url_for('qr_table_order', qr_code=table.qr_code) }}" target="_blank" class="button secondary small" title="Test Customer View">
+          <i class="fas fa-arrow-up-right-from-square"></i> Test
+        </a>
+        <form method="post" style="display:inline-block;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <input type="hidden" name="action" value="toggle_active" />
+          <input type="hidden" name="table_id" value="{{ table.id }}" />
+          <button type="submit" class="button {{ 'secondary' if table.is_active else 'primary' }} small">
+            {{ 'Deactivate' if table.is_active else 'Activate' }}
+          </button>
+        </form>
+      </div>
+    </div>
+    {% else %}
+    <div class="card" style="grid-column:1/-1; text-align:center; padding:48px;">
+      <i class="fas fa-table-cells" style="font-size:3rem; color:var(--muted); margin-bottom:16px;"></i>
+      <h3>No tables configured yet</h3>
+      <p class="muted">Add table numbers above to generate QR ordering codes for your cafe guests.</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

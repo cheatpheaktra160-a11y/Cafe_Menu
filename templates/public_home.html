@@ -1,0 +1,86 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="public-landing">
+  <section class="hero-panel">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="live-dot" style="margin-right:6px;"></span> Freshly Roasted Daily</p>
+      <h1>Welcome to {{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</h1>
+      <p>Savor artisan espresso drinks, slow-steeped cold brews, and comforting freshly baked pastries in a warm, relaxed ambiance.</p>
+      <div class="hero-actions">
+        <a href="{{ url_for('menu') }}" class="button" style="padding:16px 28px; font-size:1.05rem;">
+          Order Online Now
+        </a>
+        <a href="{{ url_for('track_order') }}" class="button secondary" style="padding:16px 24px; font-size:1.05rem;">
+          Track Order
+        </a>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:16px; margin-top:28px; color:var(--muted); font-size:0.9rem;">
+        <span>Mon-Sun: 7:30 AM - 9:30 PM</span>
+        <span style="opacity:0.4;">&bull;</span>
+        <span>{{ setting.store_address if setting and setting.store_address else 'Duem Mean coffee Takhmau' }}</span>
+        <span style="opacity:0.4;">&bull;</span>
+        <span>{{ setting.store_phone if setting and setting.store_phone else '(+885) 71 3030 308' }}</span>
+      </div>
+    </div>
+
+    <div class="hero-visual hero-visual-clean">
+      <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=80" alt="PHEAKTRA COFFEE" />
+
+      <!-- Clean Floating Badges -->
+      <div class="hero-floating-card top-left">
+        <div>
+          <span style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Customer Favorite</span>
+          <strong style="display:block; font-size:0.95rem; margin-top:2px;">Caramel Macchiato</strong>
+        </div>
+      </div>
+
+      <div class="hero-floating-card bottom-right">
+        <div>
+          <span style="font-size:0.75rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Instant QR Order</span>
+          <strong style="display:block; font-size:0.95rem; margin-top:2px;">Order From Table</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="info-grid">
+    <div class="feature-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 style="margin:0; font-size:1.25rem; font-weight:800;">Featured Specialties</h3>
+        <a href="{{ url_for('menu') }}" class="muted" style="text-decoration:none; font-size:0.85rem; font-weight:600; color:var(--primary);">View all</a>
+      </div>
+      <div class="feature-list">
+        {% for item in featured %}
+        <div class="mini-product" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+          <div>
+            <strong style="font-size:0.95rem; display:block;">{{ item.name }}</strong>
+            <span class="badge subtle" style="font-size:0.72rem; padding:2px 8px; margin-top:4px; display:inline-block;">{{ item.category_name }}</span>
+          </div>
+          <strong style="color:var(--primary); font-size:1.05rem;">{{ money(item.price) }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="feature-card">
+      <h3 style="margin:0 0 16px; font-size:1.25rem; font-weight:800;">Why Guests Love Us</h3>
+      <ul style="list-style:none; padding:0; margin:0; display:grid; gap:14px; font-size:0.95rem; color:var(--muted);">
+        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> 100% Organic, ethically sourced beans</li>
+        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> Instant table ordering via QR code</li>
+        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> Cozy atmosphere with high-speed Wi-Fi</li>
+        <li style="display:flex; align-items:center; gap:10px;"><span style="width:6px; height:6px; border-radius:50%; background:var(--primary); display:inline-block; flex-shrink:0;"></span> Daily house-made cakes and croissants</li>
+      </ul>
+    </div>
+
+    <div class="feature-card">
+      <h3 style="margin:0 0 16px; font-size:1.25rem; font-weight:800;">Store Hours &amp; Location</h3>
+      <ul style="list-style:none; padding:0; margin:0; display:grid; gap:14px; font-size:0.95rem; color:var(--muted);">
+        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Operating Hours</strong> Open 7 Days a week (7:30 AM - 9:30 PM)</li>
+        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Phone Number</strong> {{ setting.store_phone if setting and setting.store_phone else '(+885) 71 3030 308' }}</li>
+        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Free Guest Wi-Fi</strong> {{ setting.wifi_ssid if setting and setting.wifi_ssid else 'Pheaktra_Coffee_5G' }}</li>
+        <li><strong style="color:var(--text); display:block; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:2px;">Address</strong> {{ setting.store_address if setting and setting.store_address else 'Duem Mean coffee Takhmau' }}</li>
+      </ul>
+    </div>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Database (local data)
+*.db
+*.sqlite3
+
+# Environment / secrets
+.env
+.env.*
+
+# Node / frontend build artifacts
+node_modules/
+frontend/.next/
+frontend/out/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Local scratch/test scripts
+_smoke_test.py
+_inspect_db.py

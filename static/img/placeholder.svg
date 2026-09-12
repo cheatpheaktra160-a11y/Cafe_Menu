@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240" viewBox="0 0 320 240" fill="none">
+  <rect width="320" height="240" rx="24" fill="#f7eadb"/>
+  <path d="M80 144c0-36 28.8-64 64-64s64 28.8 64 64" stroke="#b48d6c" stroke-width="12" stroke-linecap="round"/>
+  <path d="M88 154h144" stroke="#b48d6c" stroke-width="12" stroke-linecap="round"/>
+  <path d="M112 114c0-24 20-44 44-44s44 20 44 44" stroke="#8f6a4d" stroke-width="10" stroke-linecap="round"/>
+  <path d="M144 44h32" stroke="#8f6a4d" stroke-width="10" stroke-linecap="round"/>
+  <text x="160" y="190" text-anchor="middle" fill="#8f6a4d" font-family="Inter, sans-serif" font-size="18">Cafe Image</text>
+</svg>

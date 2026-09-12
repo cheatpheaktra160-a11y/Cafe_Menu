@@ -1,0 +1,85 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="public-landing">
+  <div class="section-header split">
+    <div>
+      <p class="eyebrow">Your Selection</p>
+      <h2 style="font-size:2rem; font-weight:800; margin:4px 0 0;">Shopping Cart</h2>
+    </div>
+    <a href="{{ url_for('menu') }}" class="button secondary">
+      <i class="fas fa-arrow-left"></i> Continue Shopping
+    </a>
+  </div>
+
+  {% if cart_items %}
+  <div class="cart-page-grid">
+    <div class="card customer-cart-items-card" style="display:grid; gap:16px; padding:24px;">
+      {% for item in cart_items %}
+      <div class="customer-cart-item">
+        <div class="customer-cart-item-info">
+          <h3 style="margin:0; font-size:1.1rem; font-weight:700;">{{ item.name }}</h3>
+          <p class="muted" style="margin:4px 0 0; font-size:0.85rem;">{{ item.options }}</p>
+          <strong style="color:var(--primary); font-size:0.95rem; display:block; margin-top:4px;">{{ money(item.price) }} each</strong>
+        </div>
+
+        <div class="customer-cart-item-actions">
+          <form method="post" action="{{ url_for('cart') }}" class="customer-qty-form" style="display:inline-flex; align-items:center; gap:6px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="action" value="update" />
+            <input type="hidden" name="product_id" value="{{ item.product_id }}" />
+            <input type="number" name="quantity" min="1" max="20" value="{{ item.quantity }}" style="width:64px; text-align:center; padding:8px;" aria-label="Quantity" />
+            <button type="submit" class="button secondary small" title="Update Quantity"><i class="fas fa-sync-alt"></i></button>
+          </form>
+
+          <form method="post" action="{{ url_for('cart') }}" style="display:inline-block;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="hidden" name="action" value="remove" />
+            <input type="hidden" name="product_id" value="{{ item.product_id }}" />
+            <button type="submit" class="button danger small" title="Remove item"><i class="fas fa-trash-alt"></i></button>
+          </form>
+        </div>
+
+        <div class="customer-cart-item-total">
+          <strong style="font-size:1.15rem;">{{ money(item.line_total) }}</strong>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <aside class="card" style="display:grid; gap:16px; padding:24px;">
+      <h3 style="margin:0; font-size:1.3rem;"><i class="fas fa-receipt" style="color:var(--primary);"></i> Order Summary</h3>
+      
+      <div style="display:flex; justify-content:space-between; color:var(--muted);">
+        <span>Subtotal</span>
+        <strong style="color:var(--text);">{{ money(subtotal) }}</strong>
+      </div>
+      
+      {% if session_table_number %}
+      <div style="display:flex; justify-content:space-between; color:var(--muted);">
+        <span>Table Service</span>
+        <strong style="color:var(--success);">Table {{ session_table_number }}</strong>
+      </div>
+      {% endif %}
+
+      <div style="display:flex; justify-content:space-between; font-size:1.25rem; font-weight:800; border-top:1px solid var(--border); padding-top:14px;">
+        <span>Total</span>
+        <strong style="color:var(--primary);">{{ money(subtotal) }}</strong>
+      </div>
+
+      <a href="{{ url_for('checkout') }}" class="button full" style="padding:16px; font-size:1.05rem; margin-top:8px;">
+        <i class="fas fa-credit-card"></i> Proceed to Checkout
+      </a>
+    </aside>
+  </div>
+  {% else %}
+  <div class="card" style="text-align:center; padding:64px;">
+    <i class="fas fa-shopping-cart" style="font-size:3.5rem; color:var(--muted); margin-bottom:16px;"></i>
+    <h3>Your cart is empty</h3>
+    <p class="muted">Add a few favorite drinks or treats to get started.</p>
+    <a href="{{ url_for('menu') }}" class="button mt-1" style="padding:14px 24px;">
+      <i class="fas fa-mug-hot"></i> Browse Menu
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
