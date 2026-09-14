@@ -1,29 +1,29 @@
 {% extends 'layout.html' %}
 {% block content %}
 <div class="public-landing">
-  <!-- 1. HERO SECTION WITH AMBIENT GLOW, STEAM ANIMATION & FLOATING BADGES -->
+  <!-- 1. HERO SECTION WITH AMBIENT GLOW, STEAM ANIMATION & SHOWCASE -->
   <section class="hero-panel hero-panel-dynamic">
     <div class="hero-copy">
-      <div style="display:inline-flex; align-items:center; gap:8px; background:rgba(245, 158, 11, 0.12); border:1px solid rgba(245, 158, 11, 0.28); padding:6px 14px; border-radius:999px; margin-bottom:14px;">
-        <span class="live-dot" style="background:#22c55e; box-shadow:0 0 10px #22c55e;"></span>
-        <span class="eyebrow" style="color:#fcd34d; font-size:0.78rem; font-weight:800; letter-spacing:0.06em; margin:0;">Freshly Roasted Daily &bull; Sourced Ethically</span>
+      <div class="hero-badge-pill">
+        <span class="live-dot"></span>
+        <span class="eyebrow">Freshly Roasted Daily &bull; Sourced Ethically</span>
       </div>
 
-      <h1 style="font-size:clamp(2.2rem, 4.5vw, 3.8rem); line-height:1.12; margin:6px 0 16px; font-weight:800; letter-spacing:-0.03em;">
-        Welcome to <span class="hero-title-gradient">{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</span>
+      <h1 class="hero-title">
+        Welcome to <span class="hero-title-highlight">{{ setting.brand if setting else 'PHEAKTRA COFFEE' }}</span>
       </h1>
 
-      <p style="color:var(--text-secondary, #cbd5e1); font-size:1.12rem; line-height:1.6; max-width:540px; margin:0 0 24px;">
+      <p class="hero-subtitle">
         Savor artisan espresso drinks, slow-steeped cold brews, and comforting freshly baked pastries in a warm, relaxed ambiance.
       </p>
 
-      <div class="hero-actions" style="display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
-        <a href="{{ url_for('menu') }}" class="button btn-sheen-glow" style="padding:16px 32px; font-size:1.08rem; display:inline-flex; align-items:center; gap:10px; text-decoration:none;">
-          <i class="fas fa-mug-hot" style="font-size:1.15rem;"></i>
+      <div class="hero-actions">
+        <a href="{{ url_for('menu') }}" class="button hero-btn-primary btn-sheen">
+          <i class="fas fa-mug-hot"></i>
           <span>Order Online Now</span>
         </a>
-        <a href="{{ url_for('track_order') }}" class="button secondary" style="padding:16px 26px; font-size:1.05rem; display:inline-flex; align-items:center; gap:8px; text-decoration:none;">
-          <i class="fas fa-location-crosshairs" style="color:var(--primary);"></i>
+        <a href="{{ url_for('track_order') }}" class="button secondary hero-btn-secondary">
+          <i class="fas fa-location-crosshairs"></i>
           <span>Track Order</span>
         </a>
       </div>
@@ -34,12 +34,10 @@
           <i class="fas fa-clock"></i>
           <span>Open Daily: <strong>7:30 AM &ndash; 9:30 PM</strong></span>
         </div>
-        <span style="opacity:0.3; display:inline-block;" class="hide-mobile">&bull;</span>
         <div class="hero-info-item">
           <i class="fas fa-location-dot"></i>
           <span>{{ setting.store_address if setting and setting.store_address else 'Duem Mean coffee Takhmau' }}</span>
         </div>
-        <span style="opacity:0.3; display:inline-block;" class="hide-mobile">&bull;</span>
         <div class="hero-info-item">
           <i class="fas fa-phone"></i>
           <span>{{ setting.store_phone if setting and setting.store_phone else '(+885) 71 3030 308' }}</span>
@@ -47,8 +45,8 @@
       </div>
     </div>
 
-    <!-- Right Hero Visual with Steam & 3D Floating Badges -->
-    <div class="hero-visual hero-visual-clean" style="position:relative; min-height:360px;">
+    <!-- Hero Visual with Steam Animation & Showcase Photo -->
+    <div class="hero-visual hero-visual-clean">
       <div class="hero-glow-halo"></div>
 
       <!-- Rising Coffee Steam Animation -->
@@ -59,13 +57,13 @@
         <div class="steam-line"></div>
       </div>
 
-      <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=80"
+      <img src="/static/img/hero_coffee_showcase.jpg"
            alt="PHEAKTRA COFFEE Showcase"
-           style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius-lg); filter:brightness(0.9) contrast(1.05);"
-           onerror="this.onerror=null; this.src='/static/img/placeholder.svg';" />
+           class="hero-showcase-img"
+           onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=1200&q=85';" />
 
       <!-- Floating 3D Badge 1 (Top-Left): Rating -->
-      <div class="hero-floating-card top-left float-1" style="background:rgba(18, 24, 34, 0.94); border:1px solid rgba(245, 158, 11, 0.35); box-shadow:0 12px 28px rgba(0,0,0,0.6);">
+      <div class="hero-floating-card top-left float-1">
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="width:36px; height:36px; border-radius:50%; background:rgba(245, 158, 11, 0.2); color:#f59e0b; display:grid; place-items:center; font-size:1.05rem;">
             <i class="fas fa-star"></i>
@@ -78,7 +76,7 @@
       </div>
 
       <!-- Floating 3D Badge 2 (Bottom-Right): Table QR -->
-      <div class="hero-floating-card bottom-right float-2" style="background:rgba(18, 24, 34, 0.94); border:1px solid rgba(34, 197, 94, 0.35); box-shadow:0 12px 28px rgba(0,0,0,0.6);">
+      <div class="hero-floating-card bottom-right float-2">
         <div style="display:flex; align-items:center; gap:10px;">
           <div style="width:36px; height:36px; border-radius:50%; background:rgba(34, 197, 94, 0.2); color:#22c55e; display:grid; place-items:center; font-size:1.05rem;">
             <i class="fas fa-qrcode"></i>
@@ -86,19 +84,6 @@
           <div>
             <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Contactless</div>
             <strong style="display:block; font-size:0.95rem; color:#fff;">Instant Table QR Order</strong>
-          </div>
-        </div>
-      </div>
-
-      <!-- Floating 3D Badge 3 (Bottom-Left): 100% Arabica -->
-      <div class="hero-floating-card float-3 hide-mobile" style="position:absolute; bottom:18px; left:18px; background:rgba(18, 24, 34, 0.94); border:1px solid rgba(245, 158, 11, 0.35); box-shadow:0 12px 28px rgba(0,0,0,0.6);">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div style="width:36px; height:36px; border-radius:50%; background:rgba(245, 158, 11, 0.2); color:#f59e0b; display:grid; place-items:center; font-size:1.05rem;">
-            <i class="fas fa-seedling"></i>
-          </div>
-          <div>
-            <div style="font-size:0.72rem; color:var(--muted); text-transform:uppercase; font-weight:700; letter-spacing:0.04em;">Origin Quality</div>
-            <strong style="display:block; font-size:0.95rem; color:#fff;">100% Arabica Beans</strong>
           </div>
         </div>
       </div>
