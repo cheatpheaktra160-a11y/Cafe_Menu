@@ -589,6 +589,13 @@ def inject_globals():
 def home():
     if g.user:
         return redirect(url_for("dashboard"))
+    return redirect(url_for("menu"))
+
+
+@app.route("/home")
+def landing_home():
+    if g.user:
+        return redirect(url_for("dashboard"))
     featured = query_db(
         "SELECT p.*, c.name AS category_name FROM products p "
         "JOIN categories c ON c.id = p.category_id WHERE p.stock > 0 "

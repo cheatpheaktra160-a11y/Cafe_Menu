@@ -1191,6 +1191,10 @@ table tbody tr:hover {
   width: 100%;
 }
 
+.pos-search-wrap {
+  max-width: 260px;
+}
+
 .category-list {
   display: flex;
   flex-wrap: wrap;
@@ -2795,8 +2799,21 @@ table tbody tr:hover {
   .pos-shell {
     grid-template-columns: 1fr;
     gap: 16px;
-    min-width: 0;
-    max-width: 100%;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-left,
+  .pos-right,
+  .pos-categories {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-categories {
+    overflow: hidden;
   }
 
   .pos-right.cart-panel {
@@ -3206,27 +3223,48 @@ table tbody tr:hover {
   /* --- POS --- */
   .pos-shell {
     gap: 14px;
-    padding-bottom: 75px;
-    min-width: 0;
-    max-width: 100%;
+    padding-bottom: max(85px, calc(env(safe-area-inset-bottom, 16px) + 75px));
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-left,
+  .pos-right,
+  .pos-categories {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .pos-categories {
+    overflow: hidden;
+  }
+
+  .pos-search-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 
   .product-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-    min-width: 0;
-    max-width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .product-card {
     padding: 10px;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-sm);
     display: flex;
     flex-direction: column;
     gap: 8px;
-    min-width: 0;
-    max-width: 100%;
-    box-sizing: border-box;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .product-img-wrap {
@@ -3265,8 +3303,8 @@ table tbody tr:hover {
 
   .product-card button.add-product {
     width: 100%;
-    padding: 10px;
-    min-height: 42px;
+    padding: 8px 10px;
+    min-height: 40px;
     font-size: 0.84rem;
     font-weight: 700;
     display: flex;
@@ -3586,16 +3624,16 @@ table tbody tr:hover {
     font-size: 0.82rem !important;
   }
 
-  /* POS product grid on small phone: single column full width with clear card */
+  /* POS product grid on small phone: 2 compact touch cards per row */
   .product-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    width: 100%;
-    max-width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .product-card {
-    padding: 12px;
+    padding: 8px;
     border-radius: var(--radius-sm);
     width: 100%;
     max-width: 100%;
@@ -3603,24 +3641,25 @@ table tbody tr:hover {
   }
 
   .product-img-wrap {
-    height: 150px;
-    min-height: 130px;
+    height: 95px;
+    min-height: 85px;
     aspect-ratio: auto;
     border-radius: var(--radius-sm);
   }
 
   .product-card strong {
-    font-size: 0.95rem;
+    font-size: 0.84rem;
+    line-height: 1.2;
   }
 
   .product-meta {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
   }
 
   .product-card button.add-product {
-    min-height: 44px;
-    padding: 10px 14px;
-    font-size: 0.88rem;
+    min-height: 38px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
   }
 
   .discount-presets,

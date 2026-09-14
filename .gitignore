@@ -28,3 +28,6 @@ Thumbs.db
 # Local scratch/test scripts
 _smoke_test.py
 _inspect_db.py
+mobile_pos_audit/
+mobile_test_artifacts/
+audit_screenshots/
