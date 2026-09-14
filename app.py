@@ -586,14 +586,8 @@ def inject_globals():
 # Public & customer routes
 # ---------------------------------------------------------------------------
 @app.route("/")
-def home():
-    if g.user:
-        return redirect(url_for("dashboard"))
-    return redirect(url_for("menu"))
-
-
 @app.route("/home")
-def landing_home():
+def home():
     if g.user:
         return redirect(url_for("dashboard"))
     featured = query_db(
